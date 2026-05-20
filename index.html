@@ -1,0 +1,1469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart Smoke Detection System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Exo+2:wght@300;400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.6.0/jspdf.plugin.autotable.min.js"></script>
+<style>
+:root {
+  --bg-primary:    #050d1a;
+  --bg-secondary:  #071428;
+  --bg-card:       rgba(8,24,48,0.75);
+  --bg-glass:      rgba(0,200,255,0.04);
+  --border:        rgba(0,200,255,0.12);
+  --border-bright: rgba(0,200,255,0.35);
+  --cyan:          #00c8ff;
+  --cyan-dim:      #0090b8;
+  --cyan-glow:     rgba(0,200,255,0.25);
+  --green:         #00ff88;
+  --green-dim:     #007a44;
+  --green-glow:    rgba(0,255,136,0.25);
+  --red:           #ff3355;
+  --red-dim:       #881122;
+  --red-glow:      rgba(255,51,85,0.3);
+  --yellow:        #ffcc00;
+  --yellow-glow:   rgba(255,204,0,0.25);
+  --text-primary:  #e8f4ff;
+  --text-secondary:#7ab8d4;
+  --text-muted:    #3a6480;
+  --sidebar-w:     240px;
+  --header-h:      64px;
+  --radius:        14px;
+  --radius-sm:     8px;
+  --transition:    0.25s cubic-bezier(.4,0,.2,1);
+  --font-display:  'Orbitron', monospace;
+  --font-body:     'Exo 2', sans-serif;
+  --font-mono:     'JetBrains Mono', monospace;
+}
+[data-theme="light"] {
+  --bg-primary:#e8f0f8;--bg-secondary:#d0dff0;--bg-card:rgba(255,255,255,0.8);
+  --bg-glass:rgba(0,100,200,0.06);--border:rgba(0,100,200,0.15);--border-bright:rgba(0,100,200,0.4);
+  --cyan:#0070cc;--cyan-dim:#004a88;--text-primary:#0a1525;--text-secondary:#2a4a70;--text-muted:#6090bb;
+}
+[data-theme="cyber-blue"] {
+  --bg-primary:#000814;--bg-secondary:#000d1a;--bg-card:rgba(0,8,20,0.85);--cyan:#00ffff;--text-primary:#ccffff;
+}
+[data-theme="emerald"] {
+  --bg-primary:#021a0e;--bg-secondary:#031f10;--bg-card:rgba(2,26,14,0.8);
+  --cyan:#00ff88;--cyan-glow:rgba(0,255,136,0.25);--text-primary:#ccffee;
+}
+[data-theme="neon-purple"] {
+  --bg-primary:#0d0014;--bg-secondary:#110019;--bg-card:rgba(13,0,20,0.8);
+  --cyan:#cc44ff;--cyan-glow:rgba(204,68,255,0.25);--text-primary:#f0ccff;
+}
+[data-theme="midnight"] {
+  --bg-primary:#080810;--bg-secondary:#0c0c18;--bg-card:rgba(8,8,20,0.85);
+  --cyan:#8888ff;--cyan-glow:rgba(136,136,255,0.25);--text-primary:#ddddff;
+}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{font-size:14px;scroll-behavior:smooth;}
+body{font-family:var(--font-body);background:var(--bg-primary);color:var(--text-primary);
+  min-height:100vh;overflow-x:hidden;transition:background var(--transition),color var(--transition);}
+body::before{content:'';position:fixed;inset:0;
+  background-image:linear-gradient(rgba(0,200,255,0.03) 1px,transparent 1px),
+  linear-gradient(90deg,rgba(0,200,255,0.03) 1px,transparent 1px);
+  background-size:40px 40px;pointer-events:none;z-index:0;}
+
+/* ── WARMUP BANNER (non-blocking) ── */
+#warmup-banner {
+  display: none;
+  position: sticky;
+  top: var(--header-h);
+  z-index: 85;
+  background: linear-gradient(90deg, rgba(5,13,26,0.97), rgba(7,20,40,0.97));
+  border-bottom: 1px solid rgba(255,204,0,0.35);
+  backdrop-filter: blur(16px);
+  padding: 10px 24px;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+#warmup-banner.visible { display: flex; }
+.wb-icon  { font-size: 20px; animation: wb-spin 4s linear infinite; flex-shrink: 0; }
+@keyframes wb-spin { to { transform: rotate(360deg); } }
+.wb-label { font-family: var(--font-display); font-size: 11px; font-weight: 700;
+            color: var(--yellow); letter-spacing: 2px; white-space: nowrap; }
+.wb-timer { font-family: var(--font-display); font-size: 20px; font-weight: 900;
+            color: var(--yellow); letter-spacing: 3px; min-width: 58px;
+            text-shadow: 0 0 14px var(--yellow-glow); }
+.wb-track { flex: 1; min-width: 100px; max-width: 300px; height: 5px;
+            background: rgba(255,255,255,0.06); border-radius: 10px; overflow: hidden; }
+.wb-fill  { height: 100%; border-radius: 10px; width: 0%;
+            background: linear-gradient(90deg, var(--cyan-dim), var(--yellow));
+            box-shadow: 0 0 10px var(--yellow-glow); transition: width 3s linear; }
+.wb-steps { display: flex; gap: 12px; flex-wrap: wrap; }
+.wb-step  { font-size: 10px; color: var(--text-muted); display: flex; align-items: center; gap: 4px; }
+.wb-step.done   { color: var(--green); }
+.wb-step.active { color: var(--yellow); }
+.wb-dismiss { margin-left: auto; font-size: 10px; color: var(--text-muted); cursor: pointer;
+              padding: 4px 10px; border-radius: 4px; border: 1px solid var(--border);
+              background: transparent; font-family: var(--font-body); transition: all var(--transition); }
+.wb-dismiss:hover { border-color: var(--border-bright); color: var(--text-primary); }
+
+/* ── LAYOUT ── */
+.app-shell{display:flex;min-height:100vh;position:relative;z-index:1;}
+
+/* ── SIDEBAR ── */
+.sidebar{width:var(--sidebar-w);background:rgba(5,13,26,0.95);border-right:1px solid var(--border);
+  display:flex;flex-direction:column;position:fixed;left:0;top:0;bottom:0;z-index:100;
+  transition:transform var(--transition),width var(--transition);backdrop-filter:blur(20px);}
+.sidebar-logo{padding:24px 20px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;}
+.logo-icon{width:40px;height:40px;background:linear-gradient(135deg,var(--cyan),var(--cyan-dim));
+  border-radius:10px;display:flex;align-items:center;justify-content:center;font-family:var(--font-display);
+  font-weight:900;font-size:16px;color:#fff;box-shadow:0 0 20px var(--cyan-glow);flex-shrink:0;}
+.logo-text{font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--cyan);letter-spacing:2px;line-height:1.2;}
+.logo-sub{font-size:9px;color:var(--text-muted);letter-spacing:1px;text-transform:uppercase;}
+.sidebar-nav{flex:1;padding:16px 12px;overflow-y:auto;}
+.nav-section-label{font-size:9px;font-weight:600;color:var(--text-muted);letter-spacing:2px;
+  text-transform:uppercase;padding:16px 8px 6px;}
+.nav-item{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:var(--radius-sm);
+  cursor:pointer;transition:all var(--transition);color:var(--text-secondary);font-size:13px;
+  font-weight:500;margin-bottom:2px;position:relative;text-decoration:none;}
+.nav-item:hover{background:var(--bg-glass);color:var(--text-primary);transform:translateX(4px);}
+.nav-item.active{background:linear-gradient(90deg,rgba(0,200,255,0.15),transparent);
+  color:var(--cyan);border-left:2px solid var(--cyan);padding-left:10px;}
+.nav-item.active::before{content:'';position:absolute;right:0;top:50%;transform:translateY(-50%);
+  width:3px;height:60%;background:var(--cyan);border-radius:4px;box-shadow:0 0 8px var(--cyan-glow);}
+.nav-icon{width:18px;height:18px;opacity:0.7;flex-shrink:0;}
+.nav-item.active .nav-icon{opacity:1;}
+.nav-badge{margin-left:auto;background:var(--red);color:#fff;font-size:9px;font-weight:700;
+  padding:2px 6px;border-radius:20px;min-width:18px;text-align:center;}
+.sidebar-footer{padding:16px 12px;border-top:1px solid var(--border);}
+.sensor-mini-status{display:flex;align-items:center;gap:8px;padding:10px 12px;
+  background:var(--bg-glass);border:1px solid var(--border);border-radius:var(--radius-sm);
+  font-size:11px;color:var(--text-secondary);}
+.status-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;background:var(--text-muted);
+  transition:background var(--transition),box-shadow var(--transition);}
+.status-dot.online{background:var(--green);box-shadow:0 0 8px var(--green-glow);animation:pulse-dot 2s infinite;}
+.status-dot.warning{background:var(--yellow);box-shadow:0 0 8px var(--yellow-glow);animation:pulse-dot 1s infinite;}
+.status-dot.error{background:var(--red);box-shadow:0 0 8px var(--red-glow);animation:pulse-dot 0.5s infinite;}
+@keyframes pulse-dot{0%,100%{opacity:1;}50%{opacity:.4;}}
+
+/* ── HEADER ── */
+.main-content{margin-left:var(--sidebar-w);flex:1;display:flex;flex-direction:column;min-height:100vh;}
+.header{height:var(--header-h);background:rgba(5,13,26,0.9);border-bottom:1px solid var(--border);
+  backdrop-filter:blur(20px);display:flex;align-items:center;padding:0 24px;gap:16px;
+  position:sticky;top:0;z-index:90;}
+.header-search{flex:1;max-width:300px;position:relative;}
+.header-search input{width:100%;background:var(--bg-glass);border:1px solid var(--border);
+  border-radius:20px;padding:8px 16px 8px 36px;color:var(--text-primary);font-family:var(--font-body);
+  font-size:12px;outline:none;transition:border-color var(--transition);}
+.header-search input:focus{border-color:var(--border-bright);}
+.header-search input::placeholder{color:var(--text-muted);}
+.search-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--text-muted);font-size:13px;}
+.header-right{display:flex;align-items:center;gap:14px;margin-left:auto;}
+.header-datetime{text-align:right;font-family:var(--font-mono);}
+.header-date{font-size:10px;color:var(--text-muted);}
+.header-time{font-size:15px;font-weight:600;color:var(--cyan);letter-spacing:1px;}
+.header-status-pill{display:flex;align-items:center;gap:6px;padding:6px 12px;background:var(--bg-glass);
+  border:1px solid var(--border);border-radius:20px;font-size:11px;color:var(--text-secondary);font-family:var(--font-mono);}
+.header-icon-btn{width:36px;height:36px;border-radius:50%;background:var(--bg-glass);border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-secondary);
+  font-size:16px;transition:all var(--transition);position:relative;}
+.header-icon-btn:hover{border-color:var(--border-bright);color:var(--cyan);}
+.notif-badge{position:absolute;top:-3px;right:-3px;width:16px;height:16px;background:var(--red);
+  border-radius:50%;font-size:9px;font-weight:700;color:#fff;display:flex;align-items:center;justify-content:center;}
+
+/* ── PAGE CONTENT ── */
+.page-content{padding:24px;flex:1;}
+.page-section{display:none;}
+.page-section.active{display:block;}
+
+/* ── SECTION HEADERS ── */
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;}
+.section-title{font-family:var(--font-display);font-size:18px;font-weight:700;
+  color:var(--text-primary);letter-spacing:1px;}
+.section-sub{font-size:12px;color:var(--text-muted);margin-top:3px;}
+
+/* ── STATUS BANNER ── */
+.status-banner{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);
+  padding:16px 24px;display:flex;align-items:center;gap:16px;margin-bottom:20px;
+  backdrop-filter:blur(10px);transition:border-color var(--transition),box-shadow var(--transition);}
+.status-banner.safe{border-color:var(--green-dim);box-shadow:0 0 30px rgba(0,255,136,0.08);}
+.status-banner.hazardous{border-color:var(--red-dim);box-shadow:0 0 30px rgba(255,51,85,0.12);
+  animation:banner-pulse 1s ease-in-out infinite;}
+@keyframes banner-pulse{0%,100%{box-shadow:0 0 30px rgba(255,51,85,0.12);}50%{box-shadow:0 0 50px rgba(255,51,85,0.3);}}
+.banner-indicator{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;
+  justify-content:center;font-size:22px;flex-shrink:0;}
+.banner-indicator.safe{background:rgba(0,255,136,0.15);}
+.banner-indicator.hazardous{background:rgba(255,51,85,0.15);animation:rotate-warn 2s linear infinite;}
+@keyframes rotate-warn{to{transform:rotate(360deg);}}
+.banner-text h2{font-family:var(--font-display);font-size:16px;font-weight:700;letter-spacing:1px;}
+.banner-text p{font-size:12px;color:var(--text-secondary);margin-top:2px;}
+.banner-smoke-val{margin-left:auto;text-align:right;}
+.smoke-val-label{font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;}
+.smoke-val-num{font-family:var(--font-display);font-size:36px;font-weight:900;line-height:1;transition:color var(--transition);}
+
+/* ── METRIC CARDS ── */
+.cards-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:20px;}
+.metric-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);
+  padding:18px 20px;backdrop-filter:blur(10px);transition:transform var(--transition),border-color var(--transition),box-shadow var(--transition);
+  cursor:default;position:relative;overflow:hidden;}
+.metric-card::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,transparent,var(--cyan),transparent);opacity:0;transition:opacity var(--transition);}
+.metric-card:hover{transform:translateY(-3px);border-color:var(--border-bright);box-shadow:0 8px 32px rgba(0,200,255,0.08);}
+.metric-card:hover::after{opacity:1;}
+.metric-icon{font-size:22px;margin-bottom:10px;}
+.metric-label{font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:2px;margin-bottom:6px;}
+.metric-value{font-family:var(--font-display);font-size:22px;font-weight:700;color:var(--text-primary);transition:color var(--transition);}
+.metric-sub{font-size:11px;color:var(--text-muted);margin-top:4px;}
+.metric-card.safe .metric-value{color:var(--green);}
+.metric-card.hazard .metric-value{color:var(--red);}
+.metric-card.cyan .metric-value{color:var(--cyan);}
+.metric-card.yellow .metric-value{color:var(--yellow);}
+
+/* ── LED CARDS ── */
+.led-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px;}
+.led-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);
+  padding:20px;text-align:center;backdrop-filter:blur(10px);transition:all var(--transition);}
+.led-bulb{width:56px;height:56px;border-radius:50%;margin:0 auto 12px;background:rgba(255,255,255,0.04);
+  border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:24px;transition:all var(--transition);}
+.led-bulb.green-on{background:rgba(0,255,136,0.2);border-color:var(--green);
+  box-shadow:0 0 30px var(--green-glow),inset 0 0 20px rgba(0,255,136,0.1);animation:glow-green 2s ease-in-out infinite;}
+.led-bulb.red-on{background:rgba(255,51,85,0.2);border-color:var(--red);
+  box-shadow:0 0 30px var(--red-glow),inset 0 0 20px rgba(255,51,85,0.1);animation:pulse-red 0.8s ease-in-out infinite;}
+.led-bulb.buzzer-on{background:rgba(255,204,0,0.15);border-color:var(--yellow);
+  box-shadow:0 0 30px var(--yellow-glow);animation:buzz-anim 0.5s ease-in-out infinite;}
+@keyframes glow-green{0%,100%{box-shadow:0 0 20px var(--green-glow);}50%{box-shadow:0 0 40px var(--green-glow),0 0 60px rgba(0,255,136,0.1);}}
+@keyframes pulse-red{0%,100%{box-shadow:0 0 20px var(--red-glow);}50%{box-shadow:0 0 50px var(--red-glow),0 0 80px rgba(255,51,85,0.15);}}
+@keyframes buzz-anim{0%,100%{transform:rotate(0deg);}25%{transform:rotate(-3deg);}75%{transform:rotate(3deg);}}
+.led-label{font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:2px;}
+.led-state{font-family:var(--font-mono);font-size:13px;font-weight:600;margin-top:4px;}
+.led-state.on{color:var(--green);}.led-state.off{color:var(--text-muted);}
+.led-state.alert{color:var(--red);}.led-state.buzz{color:var(--yellow);}
+
+/* ── CONTROL PANEL ── */
+.control-panel{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);
+  padding:24px;backdrop-filter:blur(10px);margin-bottom:20px;}
+.control-title{font-family:var(--font-display);font-size:14px;font-weight:700;color:var(--text-secondary);
+  letter-spacing:2px;text-transform:uppercase;margin-bottom:18px;display:flex;align-items:center;gap:10px;}
+.control-buttons{display:flex;flex-wrap:wrap;gap:12px;}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:12px 22px;border-radius:var(--radius-sm);
+  font-family:var(--font-body);font-size:13px;font-weight:600;cursor:pointer;border:none;
+  transition:all var(--transition);position:relative;overflow:hidden;letter-spacing:0.5px;outline:none;}
+.btn::before{content:'';position:absolute;inset:0;opacity:0;transition:opacity var(--transition);background:rgba(255,255,255,0.08);}
+.btn:hover::before{opacity:1;}
+.btn:active{transform:scale(0.97);}
+.btn-start{background:linear-gradient(135deg,#006b33,var(--green-dim));color:var(--green);
+  border:1px solid var(--green-dim);box-shadow:0 0 20px rgba(0,255,136,0.1);}
+.btn-start:hover:not(:disabled){box-shadow:0 0 30px rgba(0,255,136,0.25);transform:translateY(-2px);}
+.btn-start:disabled{opacity:0.35;cursor:not-allowed;}
+.btn-stop{background:linear-gradient(135deg,#660022,var(--red-dim));color:var(--red);
+  border:1px solid var(--red-dim);box-shadow:0 0 20px rgba(255,51,85,0.1);}
+.btn-stop:hover:not(:disabled){box-shadow:0 0 30px rgba(255,51,85,0.25);transform:translateY(-2px);}
+.btn-stop:disabled{opacity:0.35;cursor:not-allowed;}
+.btn-reset{background:var(--bg-glass);color:var(--yellow);border:1px solid rgba(255,204,0,0.2);}
+.btn-reset:hover{border-color:var(--yellow);box-shadow:0 0 20px var(--yellow-glow);transform:translateY(-2px);}
+.btn-outline{background:var(--bg-glass);color:var(--text-secondary);border:1px solid var(--border);}
+.btn-outline:hover{border-color:var(--border-bright);color:var(--text-primary);transform:translateY(-2px);}
+.btn-download{background:linear-gradient(135deg,rgba(0,100,160,0.3),rgba(0,150,200,0.2));
+  color:var(--cyan);border:1px solid var(--border-bright);}
+.btn-download:hover{box-shadow:0 0 20px var(--cyan-glow);transform:translateY(-2px);}
+
+/* ── CHARTS ── */
+.charts-grid{display:grid;grid-template-columns:2fr 1fr;gap:14px;margin-bottom:20px;}
+.chart-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);
+  padding:20px;backdrop-filter:blur(10px);}
+.chart-card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;}
+.chart-title{font-family:var(--font-display);font-size:12px;font-weight:700;color:var(--text-secondary);
+  letter-spacing:2px;text-transform:uppercase;}
+.chart-tabs{display:flex;gap:4px;}
+.chart-tab{padding:4px 10px;border-radius:4px;font-size:10px;font-weight:600;cursor:pointer;
+  color:var(--text-muted);background:transparent;border:1px solid transparent;transition:all var(--transition);}
+.chart-tab.active{background:var(--bg-glass);border-color:var(--border);color:var(--cyan);}
+.chart-tab:hover:not(.active){color:var(--text-secondary);}
+
+/* ── HISTORY TABLE ── */
+.history-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);
+  backdrop-filter:blur(10px);overflow:hidden;margin-bottom:20px;}
+.history-toolbar{padding:16px 20px;display:flex;gap:12px;align-items:center;
+  border-bottom:1px solid var(--border);flex-wrap:wrap;}
+.history-search{flex:1;min-width:180px;background:var(--bg-glass);border:1px solid var(--border);
+  border-radius:20px;padding:7px 14px 7px 32px;color:var(--text-primary);font-family:var(--font-body);
+  font-size:12px;outline:none;transition:border-color var(--transition);}
+.history-search:focus{border-color:var(--border-bright);}
+.history-search::placeholder{color:var(--text-muted);}
+select.filter-select{background:var(--bg-glass);border:1px solid var(--border);border-radius:var(--radius-sm);
+  padding:7px 28px 7px 12px;color:var(--text-secondary);font-family:var(--font-body);font-size:12px;
+  outline:none;cursor:pointer;appearance:none;transition:border-color var(--transition);}
+select.filter-select:focus{border-color:var(--border-bright);}
+table{width:100%;border-collapse:collapse;font-size:12px;}
+thead th{padding:12px 16px;text-align:left;font-size:10px;font-weight:600;color:var(--text-muted);
+  text-transform:uppercase;letter-spacing:2px;background:rgba(0,200,255,0.03);
+  border-bottom:1px solid var(--border);cursor:pointer;user-select:none;transition:color var(--transition);white-space:nowrap;}
+thead th:hover{color:var(--cyan);}
+thead th.sorted{color:var(--cyan);}
+tbody tr{border-bottom:1px solid rgba(255,255,255,0.03);transition:background var(--transition);}
+tbody tr:hover{background:var(--bg-glass);}
+tbody tr:last-child{border-bottom:none;}
+td{padding:12px 16px;color:var(--text-secondary);white-space:nowrap;}
+td.test-id{font-family:var(--font-mono);font-size:11px;color:var(--cyan);}
+td.smoke-num{font-family:var(--font-mono);font-weight:600;}
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;
+  font-size:10px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;}
+.badge-safe{background:rgba(0,255,136,0.12);color:var(--green);border:1px solid var(--green-dim);}
+.badge-hazard{background:rgba(255,51,85,0.12);color:var(--red);border:1px solid var(--red-dim);}
+.badge-good{background:rgba(0,200,255,0.1);color:var(--cyan);border:1px solid var(--border);}
+.badge-bad{background:rgba(255,51,85,0.1);color:var(--red);border:1px solid var(--red-dim);}
+.badge-active{background:rgba(255,204,0,0.1);color:var(--yellow);border:1px solid rgba(255,204,0,0.2);animation:pulse-dot 1.5s infinite;}
+.badge-completed{background:rgba(0,255,136,0.08);color:var(--green);border:1px solid var(--green-dim);}
+.led-dot{display:inline-block;width:8px;height:8px;border-radius:50%;}
+.led-dot.g{background:var(--green);box-shadow:0 0 5px var(--green-glow);}
+.led-dot.r{background:var(--red);box-shadow:0 0 5px var(--red-glow);}
+.led-dot.off{background:var(--text-muted);}
+.pagination{display:flex;align-items:center;justify-content:space-between;
+  padding:12px 20px;border-top:1px solid var(--border);font-size:11px;color:var(--text-muted);}
+.page-buttons{display:flex;gap:4px;}
+.page-btn{min-width:28px;height:28px;background:var(--bg-glass);border:1px solid var(--border);
+  border-radius:4px;color:var(--text-secondary);font-size:11px;cursor:pointer;transition:all var(--transition);
+  display:flex;align-items:center;justify-content:center;}
+.page-btn:hover{border-color:var(--border-bright);color:var(--cyan);}
+.page-btn.active{background:rgba(0,200,255,0.1);border-color:var(--cyan);color:var(--cyan);}
+
+/* ── TOAST ── */
+#toast-container{position:fixed;bottom:24px;right:24px;z-index:2000;display:flex;flex-direction:column-reverse;gap:8px;}
+.toast{display:flex;align-items:center;gap:12px;padding:12px 16px;background:rgba(10,22,40,0.95);
+  border:1px solid var(--border);border-radius:var(--radius-sm);backdrop-filter:blur(20px);
+  font-size:13px;color:var(--text-primary);max-width:340px;animation:toast-in 0.3s ease-out;box-shadow:0 8px 32px rgba(0,0,0,0.4);}
+.toast.toast-success{border-color:var(--green-dim);}
+.toast.toast-error{border-color:var(--red-dim);}
+.toast.toast-warning{border-color:rgba(255,204,0,0.3);}
+.toast.toast-info{border-color:var(--border-bright);}
+.toast-icon{font-size:18px;flex-shrink:0;}
+.toast.fade-out{animation:toast-out 0.3s ease-in forwards;}
+@keyframes toast-in{from{opacity:0;transform:translateX(20px);}to{opacity:1;transform:translateX(0);}}
+@keyframes toast-out{from{opacity:1;transform:translateX(0);}to{opacity:0;transform:translateX(20px);}}
+
+/* ── MODAL ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(8px);
+  z-index:500;display:none;align-items:center;justify-content:center;}
+.modal-overlay.open{display:flex;}
+.modal-box{background:var(--bg-secondary);border:1px solid var(--border);border-radius:var(--radius);
+  padding:28px;max-width:420px;width:90%;animation:modal-in 0.25s ease-out;}
+@keyframes modal-in{from{opacity:0;transform:scale(0.95) translateY(-10px);}to{opacity:1;transform:scale(1) translateY(0);}}
+.modal-title{font-family:var(--font-display);font-size:16px;font-weight:700;color:var(--text-primary);
+  letter-spacing:1px;margin-bottom:20px;display:flex;align-items:center;gap:10px;}
+.theme-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.theme-option{padding:14px;border:2px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;transition:all var(--transition);text-align:center;}
+.theme-option:hover{border-color:var(--border-bright);}
+.theme-option.selected{border-color:var(--cyan);box-shadow:0 0 15px var(--cyan-glow);}
+.theme-preview{width:100%;height:30px;border-radius:4px;margin-bottom:8px;}
+.theme-name{font-size:12px;font-weight:600;color:var(--text-secondary);}
+
+/* ── QUEUE ── */
+.queue-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);
+  padding:20px;backdrop-filter:blur(10px);margin-bottom:14px;}
+.queue-item{display:flex;align-items:center;gap:14px;padding:10px 14px;border-radius:var(--radius-sm);
+  margin-bottom:6px;background:rgba(255,255,255,0.02);border:1px solid var(--border);transition:background var(--transition);}
+.queue-item:last-child{margin-bottom:0;}
+.queue-item.current{background:rgba(0,200,255,0.06);border-color:var(--border-bright);}
+.queue-num{font-family:var(--font-mono);font-size:11px;color:var(--text-muted);width:30px;}
+.queue-icon{font-size:18px;}
+.queue-name{font-size:13px;font-weight:500;color:var(--text-primary);flex:1;}
+.queue-status-badge{font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;}
+.qs-testing{background:rgba(0,200,255,0.1);color:var(--cyan);border:1px solid var(--border-bright);animation:pulse-dot 1.5s infinite;}
+.qs-waiting{background:rgba(255,255,255,0.04);color:var(--text-muted);border:1px solid var(--border);}
+.qs-done{background:rgba(0,255,136,0.08);color:var(--green);border:1px solid var(--green-dim);}
+
+/* ── WARMUP STEPS (sensor status section) ── */
+.warmup-steps{display:flex;flex-direction:column;gap:10px;width:400px;max-width:90vw;}
+.warmup-step-row{display:flex;align-items:center;gap:14px;padding:10px 16px;
+  background:rgba(255,255,255,0.02);border:1px solid var(--border);border-radius:var(--radius-sm);
+  font-size:12px;color:var(--text-muted);transition:all var(--transition);}
+.warmup-step-row.done{border-color:var(--green-dim);color:var(--green);background:rgba(0,255,136,0.05);}
+.warmup-step-row.active{border-color:rgba(255,204,0,0.3);color:var(--yellow);background:rgba(255,204,0,0.04);}
+.step-icon{font-size:18px;flex-shrink:0;}
+
+/* ── EMPTY STATE ── */
+.empty-state{padding:40px 20px;text-align:center;color:var(--text-muted);}
+.empty-state-icon{font-size:40px;margin-bottom:12px;}
+.empty-state p{font-size:13px;}
+
+/* ── MISC ── */
+.section-divider{height:1px;background:var(--border);margin:20px 0;}
+.tooltip-wrap{position:relative;}
+.tooltip-wrap:hover .tooltip{display:block;}
+.tooltip{display:none;position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);
+  background:rgba(10,22,40,0.95);border:1px solid var(--border);border-radius:4px;padding:6px 10px;
+  font-size:11px;color:var(--text-primary);white-space:nowrap;z-index:999;backdrop-filter:blur(10px);}
+.text-cyan{color:var(--cyan);}.text-green{color:var(--green);}
+.text-red{color:var(--red);}.text-yellow{color:var(--yellow);}.text-muted{color:var(--text-muted);}
+::-webkit-scrollbar{width:6px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:10px;}
+::-webkit-scrollbar-thumb:hover{background:var(--border-bright);}
+
+/* ── RESPONSIVE ── */
+@media(max-width:900px){
+  :root{--sidebar-w:0px;}
+  .sidebar{transform:translateX(-240px);}
+  .sidebar.mobile-open{transform:translateX(0);width:240px;}
+  .main-content{margin-left:0;}
+  .charts-grid{grid-template-columns:1fr;}
+  .led-grid{grid-template-columns:1fr 1fr;}
+}
+@media(max-width:600px){
+  .page-content{padding:16px;}
+  .cards-grid{grid-template-columns:1fr 1fr;}
+  .led-grid{grid-template-columns:1fr 1fr;}
+  .control-buttons{flex-direction:column;}
+  .btn{justify-content:center;}
+}
+</style>
+</head>
+<body data-theme="dark">
+
+<!-- Warmup banner — non-blocking, sits below header -->
+<div id="warmup-banner">
+  <span class="wb-icon">🌡️</span>
+  <span class="wb-label">SENSOR WARMING UP</span>
+  <span class="wb-timer" id="wb-timer">03:00</span>
+  <div class="wb-track"><div class="wb-fill" id="wb-fill" style="width:0%"></div></div>
+  <div class="wb-steps">
+    <span class="wb-step active" id="wbs-1">⚡ Heating</span>
+    <span class="wb-step"        id="wbs-2">🔄 Stabilizing</span>
+    <span class="wb-step"        id="wbs-3">📡 Connecting</span>
+    <span class="wb-step"        id="wbs-4">✅ Ready</span>
+  </div>
+  <button class="wb-dismiss" onclick="dismissWarmupBanner()">Dismiss ✕</button>
+</div>
+
+<div class="app-shell">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon">TZ</div>
+      <div>
+        <div class="logo-text">SMART</div>
+        <div class="logo-sub">Smoke Detection</div>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Main</div>
+      <a class="nav-item active" data-section="dashboard" onclick="showSection('dashboard',this)">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        Dashboard
+      </a>
+      <a class="nav-item" data-section="live" onclick="showSection('live',this)">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5.2 5.2l1.4 1.4M17.4 17.4l1.4 1.4M5.2 18.8l1.4-1.4M17.4 6.6l1.4-1.4"/></svg>
+        Live Monitoring
+      </a>
+      <a class="nav-item" data-section="analytics" onclick="showSection('analytics',this)">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22,12 18,12 15,21 9,3 6,12 2,12"/></svg>
+        Analytics
+      </a>
+      <div class="nav-section-label">System</div>
+      <a class="nav-item" data-section="sensor" onclick="showSection('sensor',this)">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+        Sensor Status
+      </a>
+      <a class="nav-item" data-section="logs" onclick="showSection('logs',this)">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        Activity Logs
+        <span class="nav-badge" id="log-badge">0</span>
+      </a>
+      <a class="nav-item" data-section="reports" onclick="showSection('reports',this)">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7,10 12,15 17,10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Reports
+      </a>
+      <a class="nav-item" onclick="openThemeModal()">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+        Themes
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sensor-mini-status">
+        <div class="status-dot" id="sidebar-status-dot"></div>
+        <span id="sidebar-status-text">Initializing...</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <div class="main-content">
+    <header class="header">
+      <div class="header-search">
+        <span class="search-icon">🔍</span>
+        <input type="text" placeholder="Search logs, tests..." id="global-search" oninput="globalSearch(this.value)">
+      </div>
+      <div class="header-right">
+        <div class="header-status-pill">
+          <div class="status-dot" id="hdr-supabase-dot"></div>
+          <span>Supabase</span>
+        </div>
+        <div class="header-status-pill">
+          <div class="status-dot" id="hdr-esp32-dot"></div>
+          <span>ESP32</span>
+        </div>
+        <div class="header-datetime">
+          <div class="header-date" id="hdr-date">—</div>
+          <div class="header-time" id="hdr-time">00:00:00</div>
+        </div>
+        <div class="header-icon-btn tooltip-wrap" onclick="toggleTheme()">🎨<span class="tooltip">Toggle Light/Dark</span></div>
+        <div class="header-icon-btn tooltip-wrap" onclick="openThemeModal()">⚙️<span class="tooltip">Theme Settings</span></div>
+        <div class="header-icon-btn tooltip-wrap" onclick="showSection('logs',document.querySelector('[data-section=logs]'))">
+          🔔<span class="tooltip">Notifications</span>
+          <span class="notif-badge" id="hdr-notif-badge">0</span>
+        </div>
+      </div>
+    </header>
+
+    <div class="page-content">
+
+      <!-- DASHBOARD -->
+      <section class="page-section active" id="sec-dashboard">
+        <div class="section-header">
+          <div>
+            <div class="section-title">Dashboard</div>
+            <div class="section-sub">Real-time smoke emission monitoring overview</div>
+          </div>
+          <div style="display:flex;gap:8px">
+            <span class="badge badge-active" id="realtime-badge">● LIVE</span>
+          </div>
+        </div>
+        <div class="status-banner" id="status-banner">
+          <div class="banner-indicator safe" id="banner-icon">✅</div>
+          <div class="banner-text">
+            <h2 id="banner-title">SYSTEM READY</h2>
+            <p id="banner-sub">Sensor initialized — start a test session to begin monitoring</p>
+          </div>
+          <div class="banner-smoke-val">
+            <div class="smoke-val-label">Smoke Value</div>
+            <div class="smoke-val-num text-green" id="banner-smoke-val">—</div>
+          </div>
+        </div>
+        <div class="cards-grid">
+          <div class="metric-card cyan">
+            <div class="metric-icon">🌫️</div>
+            <div class="metric-label">Current Reading</div>
+            <div class="metric-value" id="card-smoke-val">—</div>
+            <div class="metric-sub">ADC Units</div>
+          </div>
+          <div class="metric-card" id="card-class-wrap">
+            <div class="metric-icon">🧪</div>
+            <div class="metric-label">Classification</div>
+            <div class="metric-value" id="card-classification">—</div>
+            <div class="metric-sub">Smoke Type</div>
+          </div>
+          <div class="metric-card" id="card-status-wrap">
+            <div class="metric-icon">🛡️</div>
+            <div class="metric-label">Hazard Level</div>
+            <div class="metric-value" id="card-status">—</div>
+            <div class="metric-sub">Current Level</div>
+          </div>
+          <div class="metric-card cyan">
+            <div class="metric-icon">🧪</div>
+            <div class="metric-label">Total Tests Today</div>
+            <div class="metric-value" id="card-total-today">0</div>
+            <div class="metric-sub">Completed</div>
+          </div>
+          <div class="metric-card safe">
+            <div class="metric-icon">✅</div>
+            <div class="metric-label">Safe Today</div>
+            <div class="metric-value" id="card-safe-today">0</div>
+            <div class="metric-sub">Non-Hazardous</div>
+          </div>
+          <div class="metric-card hazard">
+            <div class="metric-icon">⚠️</div>
+            <div class="metric-label">Hazardous Today</div>
+            <div class="metric-value" id="card-hazard-today">0</div>
+            <div class="metric-sub">Requires Attention</div>
+          </div>
+          <div class="metric-card" id="card-session-wrap">
+            <div class="metric-icon">🔬</div>
+            <div class="metric-label">Session Status</div>
+            <div class="metric-value text-muted" id="card-session">IDLE</div>
+            <div class="metric-sub" id="card-session-id">—</div>
+          </div>
+          <div class="metric-card cyan">
+            <div class="metric-icon">📡</div>
+            <div class="metric-label">ESP32 Status</div>
+            <div class="metric-value" id="card-esp32">OFFLINE</div>
+            <div class="metric-sub" id="card-esp32-rssi">No signal</div>
+          </div>
+        </div>
+        <div style="font-family:var(--font-display);font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;">Hardware Indicators</div>
+        <div class="led-grid">
+          <div class="led-card">
+            <div class="led-bulb" id="led-green-bulb">🟢</div>
+            <div class="led-label">Green LED</div>
+            <div class="led-state off" id="led-green-state">OFF</div>
+          </div>
+          <div class="led-card">
+            <div class="led-bulb" id="led-red-bulb">🔴</div>
+            <div class="led-label">Red LED</div>
+            <div class="led-state off" id="led-red-state">OFF</div>
+          </div>
+          <div class="led-card">
+            <div class="led-bulb" id="led-buzzer-bulb">🔊</div>
+            <div class="led-label">Buzzer</div>
+            <div class="led-state off" id="led-buzzer-state">SILENT</div>
+          </div>
+        </div>
+        <div class="control-panel">
+          <div class="control-title"><span>🎮</span> Testing Controls</div>
+          <div style="font-size:12px;color:var(--text-muted);margin-bottom:16px;">
+            Current Session: <span class="text-cyan" id="ctrl-session-id">None</span>
+          </div>
+          <div class="control-buttons">
+            <button class="btn btn-start" id="btn-start" disabled onclick="startTesting()">▶ Start Testing Now</button>
+            <button class="btn btn-stop"  id="btn-stop"  disabled onclick="stopTesting()">■ Stop Testing</button>
+            <button class="btn btn-reset"   onclick="resetSession()">↺ Reset Session</button>
+            <button class="btn btn-outline" onclick="clearCurrentSession()">✕ Clear Session</button>
+            <button class="btn btn-download" onclick="showSection('reports',document.querySelector('[data-section=reports]'))">⬇ Download Reports</button>
+          </div>
+        </div>
+        <div class="charts-grid">
+          <div class="chart-card">
+            <div class="chart-card-header">
+              <div class="chart-title">📈 Real-Time Smoke Graph</div>
+              <div class="chart-tabs">
+                <div class="chart-tab active" onclick="switchChartView('live',this)">Live</div>
+                <div class="chart-tab" onclick="switchChartView('daily',this)">Daily</div>
+                <div class="chart-tab" onclick="switchChartView('weekly',this)">Weekly</div>
+                <div class="chart-tab" onclick="switchChartView('monthly',this)">Monthly</div>
+              </div>
+            </div>
+            <canvas id="chart-realtime" height="180"></canvas>
+          </div>
+          <div class="chart-card">
+            <div class="chart-card-header"><div class="chart-title">🥧 Classification Ratio</div></div>
+            <canvas id="chart-donut" height="180"></canvas>
+          </div>
+        </div>
+      </section>
+
+      <!-- LIVE MONITORING -->
+      <section class="page-section" id="sec-live">
+        <div class="section-header">
+          <div><div class="section-title">Live Monitoring</div><div class="section-sub">Real-time sensor feed and vehicle queue</div></div>
+        </div>
+        <div class="queue-card">
+          <div style="font-family:var(--font-display);font-size:12px;font-weight:700;color:var(--text-secondary);letter-spacing:2px;margin-bottom:14px;">🚗 VEHICLE QUEUE</div>
+          <div id="queue-list"><div class="empty-state"><div class="empty-state-icon">🚫</div><p>No vehicles in queue. Add vehicles to begin.</p></div></div>
+          <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap;">
+            <input id="queue-input" type="text" placeholder="Enter plate / vehicle name..."
+              style="flex:1;min-width:180px;background:var(--bg-glass);border:1px solid var(--border);border-radius:var(--radius-sm);padding:9px 14px;color:var(--text-primary);font-family:var(--font-body);font-size:13px;outline:none;"
+              onkeydown="if(event.key==='Enter')addToQueue()">
+            <button class="btn btn-outline" onclick="addToQueue()">+ Add to Queue</button>
+            <button class="btn btn-outline" onclick="clearQueue()">Clear Queue</button>
+          </div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <div class="chart-title">📊 Live Sensor Feed</div>
+            <div class="badge badge-active">● STREAMING</div>
+          </div>
+          <canvas id="chart-live-big" height="200"></canvas>
+        </div>
+      </section>
+
+      <!-- ANALYTICS -->
+      <section class="page-section" id="sec-analytics">
+        <div class="section-header">
+          <div><div class="section-title">Analytics</div><div class="section-sub">Historical trends and emission statistics</div></div>
+        </div>
+        <div class="charts-grid">
+          <div class="chart-card"><div class="chart-card-header"><div class="chart-title">📅 Daily Statistics</div></div><canvas id="chart-daily" height="200"></canvas></div>
+          <div class="chart-card"><div class="chart-card-header"><div class="chart-title">📆 Weekly Summary</div></div><canvas id="chart-weekly" height="200"></canvas></div>
+        </div>
+        <div class="chart-card" style="margin-bottom:14px"><div class="chart-card-header"><div class="chart-title">📊 Monthly Overview</div></div><canvas id="chart-monthly" height="150"></canvas></div>
+        <div class="chart-card"><div class="chart-card-header"><div class="chart-title">⚡ Hazard Frequency</div></div><canvas id="chart-hazard" height="150"></canvas></div>
+      </section>
+
+      <!-- SENSOR STATUS -->
+      <section class="page-section" id="sec-sensor">
+        <div class="section-header">
+          <div><div class="section-title">Sensor Status</div><div class="section-sub">ESP32 hardware and connectivity details</div></div>
+        </div>
+        <div class="cards-grid">
+          <div class="metric-card"><div class="metric-icon">📡</div><div class="metric-label">ESP32 Online</div><div class="metric-value" id="ss-online">OFFLINE</div></div>
+          <div class="metric-card"><div class="metric-icon">🌡️</div><div class="metric-label">Sensor Init</div><div class="metric-value" id="ss-init">NO</div></div>
+          <div class="metric-card"><div class="metric-icon">⏳</div><div class="metric-label">Warmup Left</div><div class="metric-value" id="ss-warmup" style="font-size:16px">—</div></div>
+          <div class="metric-card"><div class="metric-icon">📶</div><div class="metric-label">RSSI (Signal)</div><div class="metric-value" id="ss-rssi">—</div></div>
+          <div class="metric-card"><div class="metric-icon">🌐</div><div class="metric-label">IP Address</div><div class="metric-value" id="ss-ip" style="font-size:14px">—</div></div>
+          <div class="metric-card"><div class="metric-icon">🕐</div><div class="metric-label">Last Seen</div><div class="metric-value" id="ss-lastseen" style="font-size:14px">—</div></div>
+          <div class="metric-card"><div class="metric-icon">💾</div><div class="metric-label">Firmware</div><div class="metric-value" id="ss-fw">—</div></div>
+        </div>
+      </section>
+
+      <!-- LOGS -->
+      <section class="page-section" id="sec-logs">
+        <div class="section-header">
+          <div><div class="section-title">Activity Logs</div><div class="section-sub">All smoke test records from the database</div></div>
+        </div>
+        <div class="history-card">
+          <div class="history-toolbar">
+            <div style="position:relative;flex:1;min-width:180px;">
+              <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--text-muted);pointer-events:none;">🔍</span>
+              <input type="text" class="history-search" style="width:100%;padding-left:34px;" placeholder="Search test ID, classification..." id="log-search" oninput="filterLogs()">
+            </div>
+            <select class="filter-select" id="log-filter-status" onchange="filterLogs()">
+              <option value="">All Status</option>
+              <option value="Safe">Safe</option>
+              <option value="Hazardous">Hazardous</option>
+            </select>
+            <select class="filter-select" id="log-filter-session" onchange="filterLogs()">
+              <option value="">All Sessions</option>
+              <option value="active">Active</option>
+              <option value="completed">Completed</option>
+            </select>
+            <button class="btn btn-outline" style="padding:7px 14px;font-size:11px" onclick="exportCSV()">⬇ CSV</button>
+          </div>
+          <div style="overflow-x:auto;">
+            <table>
+              <thead>
+                <tr>
+                  <th onclick="sortLogs('test_id')">Test ID <span class="sort-arrow">↕</span></th>
+                  <th onclick="sortLogs('created_at')">Date <span class="sort-arrow">↕</span></th>
+                  <th onclick="sortLogs('created_at')">Time <span class="sort-arrow">↕</span></th>
+                  <th onclick="sortLogs('smoke_value')">Smoke Value <span class="sort-arrow">↕</span></th>
+                  <th onclick="sortLogs('classification')">Classification <span class="sort-arrow">↕</span></th>
+                  <th onclick="sortLogs('status')">Status <span class="sort-arrow">↕</span></th>
+                  <th>LEDs</th><th>Buzzer</th><th>Session</th>
+                </tr>
+              </thead>
+              <tbody id="logs-tbody">
+                <tr><td colspan="9"><div class="empty-state"><div class="empty-state-icon">📋</div><p>No records yet. Start a test session.</p></div></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="pagination">
+            <span id="log-pagination-info">0 records</span>
+            <div class="page-buttons" id="log-pagination-btns"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- REPORTS -->
+      <section class="page-section" id="sec-reports">
+        <div class="section-header">
+          <div><div class="section-title">Reports</div><div class="section-sub">Export emission test data as PDF or CSV</div></div>
+        </div>
+        <div class="control-panel">
+          <div class="control-title"><span>📅</span> Report Filters</div>
+          <div style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:18px;align-items:flex-end;">
+            <div>
+              <div style="font-size:11px;color:var(--text-muted);margin-bottom:6px;">Period</div>
+              <select class="filter-select" id="report-period" onchange="onReportPeriodChange()">
+                <option value="today">Today</option>
+                <option value="week">This Week</option>
+                <option value="month">This Month</option>
+                <option value="custom">Custom Range</option>
+              </select>
+            </div>
+            <div id="report-date-range" style="display:none;gap:10px;align-items:center;">
+              <div><div style="font-size:11px;color:var(--text-muted);margin-bottom:6px;">From</div><input type="date" id="report-from" class="filter-select"></div>
+              <div><div style="font-size:11px;color:var(--text-muted);margin-bottom:6px;">To</div><input type="date" id="report-to" class="filter-select"></div>
+            </div>
+          </div>
+          <div class="control-buttons">
+            <button class="btn btn-download" onclick="generatePDF()">📄 Download PDF Report</button>
+            <button class="btn btn-outline"  onclick="exportCSV()">📊 Download CSV</button>
+          </div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-card-header"><div class="chart-title">📋 Report Preview</div></div>
+          <div id="report-preview" style="padding:10px 0;">
+            <div class="empty-state"><div class="empty-state-icon">📋</div><p>Select a period and generate a report</p></div>
+          </div>
+        </div>
+      </section>
+
+    </div><!-- end page-content -->
+  </div><!-- end main-content -->
+</div><!-- end app-shell -->
+
+<!-- THEME MODAL -->
+<div class="modal-overlay" id="theme-modal">
+  <div class="modal-box">
+    <div class="modal-title">🎨 Theme Customization</div>
+    <div class="theme-grid">
+      <div class="theme-option selected" onclick="applyTheme('dark',this)">
+        <div class="theme-preview" style="background:linear-gradient(135deg,#050d1a,#071428);border:1px solid rgba(0,200,255,0.3)"></div>
+        <div class="theme-name">Dark Mode</div>
+      </div>
+      <div class="theme-option" onclick="applyTheme('light',this)">
+        <div class="theme-preview" style="background:linear-gradient(135deg,#e8f0f8,#d0dff0);border:1px solid rgba(0,100,200,0.3)"></div>
+        <div class="theme-name">Light Mode</div>
+      </div>
+      <div class="theme-option" onclick="applyTheme('cyber-blue',this)">
+        <div class="theme-preview" style="background:linear-gradient(135deg,#000814,#000d1a);border:1px solid rgba(0,255,255,0.4)"></div>
+        <div class="theme-name">Cyber Blue</div>
+      </div>
+      <div class="theme-option" onclick="applyTheme('emerald',this)">
+        <div class="theme-preview" style="background:linear-gradient(135deg,#021a0e,#031f10);border:1px solid rgba(0,255,136,0.4)"></div>
+        <div class="theme-name">Emerald Green</div>
+      </div>
+      <div class="theme-option" onclick="applyTheme('neon-purple',this)">
+        <div class="theme-preview" style="background:linear-gradient(135deg,#0d0014,#110019);border:1px solid rgba(204,68,255,0.4)"></div>
+        <div class="theme-name">Neon Purple</div>
+      </div>
+      <div class="theme-option" onclick="applyTheme('midnight',this)">
+        <div class="theme-preview" style="background:linear-gradient(135deg,#080810,#0c0c18);border:1px solid rgba(136,136,255,0.4)"></div>
+        <div class="theme-name">Midnight</div>
+      </div>
+    </div>
+    <div style="margin-top:20px;text-align:right;"><button class="btn btn-outline" onclick="closeThemeModal()">Close</button></div>
+  </div>
+</div>
+
+<div id="toast-container"></div>
+
+<script>
+// ── CONFIG ────────────────────────────────────────────────────
+const SUPABASE_URL  = 'https://crottwcwsasedjzvydbp.supabase.co';
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNyb3R0d2N3c2FzZWRqenZ5ZGJwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkyODcxMzIsImV4cCI6MjA5NDg2MzEzMn0.qQU8eT4pkSIBILkLXy2gkE_4RDpybTxrfRjYD72MiGs';
+const SMOKE_THRESHOLD   = 400;
+const WARMUP_DURATION_MS = 180000; // 3 minutes — match ESP32
+
+// ── SUPABASE INIT ─────────────────────────────────────────────
+let sb = null;
+try { sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON); } catch(e) {}
+
+// ── APP STATE ─────────────────────────────────────────────────
+const state = {
+  testing:false, sessionId:null, smokeValue:0, classification:'—', status:'—',
+  greenLed:false, redLed:false, buzzer:false, esp32Online:false, esp32Data:{},
+  allLogs:[], filteredLogs:[], sortKey:'created_at', sortDir:'desc',
+  page:1, pageSize:15, queue:[],
+  testCounter: parseInt(localStorage.getItem('troyikz_counter')||'0'),
+  totalToday:0, safeToday:0, hazardToday:0,
+};
+
+// ── WARMUP — non-blocking ─────────────────────────────────────
+const warmupStart = Date.now();
+let warmupDone = false;
+
+function startWarmupBanner() {
+  document.getElementById('warmup-banner').classList.add('visible');
+  document.getElementById('btn-start').disabled = true;
+  requestAnimationFrame(warmupBannerTick);
+}
+
+function warmupBannerTick() {
+  if (warmupDone) return;
+  const elapsed   = Date.now() - warmupStart;
+  const remaining = Math.max(0, WARMUP_DURATION_MS - elapsed);
+  const pct       = Math.min(100, (elapsed / WARMUP_DURATION_MS) * 100);
+  const m = String(Math.floor(remaining / 60000)).padStart(2,'0');
+  const s = String(Math.floor((remaining % 60000) / 1000)).padStart(2,'0');
+  const timerEl = document.getElementById('wb-timer');
+  const fillEl  = document.getElementById('wb-fill');
+  if (timerEl) timerEl.textContent = m + ':' + s;
+  if (fillEl)  fillEl.style.width  = pct + '%';
+  activateWarmupStep(pct < 5 ? 1 : pct < 40 ? 2 : pct < 75 ? 3 : 4);
+  remaining <= 0 ? completeWarmup() : requestAnimationFrame(warmupBannerTick);
+}
+
+function activateWarmupStep(active) {
+  for (let i = 1; i <= 4; i++) {
+    const el = document.getElementById('wbs-' + i);
+    if (!el) continue;
+    el.className = i < active ? 'wb-step done' : i === active ? 'wb-step active' : 'wb-step';
+  }
+}
+
+function completeWarmup() {
+  warmupDone = true;
+  activateWarmupStep(5);
+  const banner = document.getElementById('warmup-banner');
+  if (banner) banner.classList.remove('visible');
+  document.getElementById('btn-start').disabled = false;
+  updateSidebarStatus('online', 'Sensor Ready');
+  setHeaderDot('hdr-esp32-dot', 'online');
+  toast('Sensor ready! You can now start testing.', 'success');
+}
+
+function dismissWarmupBanner() {
+  document.getElementById('warmup-banner').classList.remove('visible');
+}
+
+// Sync banner with ESP32 warmup_remaining from Supabase realtime
+function syncWarmupFromESP32(remaining) {
+  if (remaining <= 0 && !warmupDone) { completeWarmup(); return; }
+  if (warmupDone) return;
+  const timerEl = document.getElementById('wb-timer');
+  const fillEl  = document.getElementById('wb-fill');
+  if (timerEl) {
+    const m = String(Math.floor(remaining / 60)).padStart(2,'0');
+    const s = String(remaining % 60).padStart(2,'0');
+    timerEl.textContent = m + ':' + s;
+  }
+  if (fillEl) fillEl.style.width = Math.max(0, 100 - (remaining / 180) * 100) + '%';
+}
+
+// ── CLOCK ─────────────────────────────────────────────────────
+function updateClock() {
+  const now = new Date();
+  const days   = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  document.getElementById('hdr-date').textContent =
+    `${days[now.getDay()]}, ${months[now.getMonth()]} ${now.getDate()}, ${now.getFullYear()}`;
+  document.getElementById('hdr-time').textContent =
+    `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// ── NAVIGATION ────────────────────────────────────────────────
+function showSection(name, el) {
+  document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('sec-' + name).classList.add('active');
+  if (el) el.classList.add('active');
+  if (name === 'analytics') setTimeout(() => Object.values(charts).forEach(c => c && c.resize()), 50);
+}
+
+// ── STATUS HELPERS ────────────────────────────────────────────
+function updateSidebarStatus(cls, text) {
+  document.getElementById('sidebar-status-dot').className = 'status-dot ' + cls;
+  document.getElementById('sidebar-status-text').textContent = text;
+}
+function setHeaderDot(id, cls) {
+  document.getElementById(id).className = 'status-dot ' + cls;
+}
+
+// ── TOAST ─────────────────────────────────────────────────────
+function toast(msg, type='info', duration=4000) {
+  const icons = {success:'✅',error:'❌',warning:'⚠️',info:'ℹ️'};
+  const c = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = `toast toast-${type}`;
+  t.innerHTML = `<span class="toast-icon">${icons[type]||'ℹ️'}</span><span>${msg}</span>`;
+  c.appendChild(t);
+  setTimeout(() => { t.classList.add('fade-out'); setTimeout(() => t.remove(), 350); }, duration);
+}
+
+// ── TESTING CONTROLS ──────────────────────────────────────────
+function generateTestId() {
+  state.testCounter++;
+  localStorage.setItem('troyikz_counter', state.testCounter);
+  return `TEST-${String(state.testCounter).padStart(4,'0')}`;
+}
+
+function startTesting() {
+  if (state.testing) return;
+  state.testing   = true;
+  state.sessionId = generateTestId();
+  document.getElementById('btn-start').disabled = true;
+  document.getElementById('btn-stop').disabled  = false;
+  document.getElementById('ctrl-session-id').textContent     = state.sessionId;
+  document.getElementById('card-session').textContent        = 'ACTIVE';
+  document.getElementById('card-session').className         = 'metric-value text-cyan';
+  document.getElementById('card-session-id').textContent    = state.sessionId;
+  document.getElementById('card-session-wrap').className    = 'metric-card cyan';
+  if (state.queue.length > 0) { state.queue[0].status = 'testing'; renderQueue(); }
+  toast(`Session ${state.sessionId} started`, 'success');
+  setBannerTesting();
+}
+
+function stopTesting() {
+  if (!state.testing) return;
+  state.testing = false;
+  document.getElementById('btn-start').disabled = false;
+  document.getElementById('btn-stop').disabled  = true;
+  document.getElementById('card-session').textContent    = 'COMPLETED';
+  document.getElementById('card-session').className     = 'metric-value text-green';
+  document.getElementById('card-session-wrap').className= 'metric-card safe';
+  if (state.queue.length > 0 && state.queue[0].status === 'testing') {
+    state.queue[0].status = 'done';
+    setTimeout(() => { state.queue.shift(); renderQueue(); }, 1500);
+  }
+  toast(`Session ${state.sessionId} completed`, 'success');
+  state.sessionId = null;
+  setBannerIdle();
+  updateSidebarStatus('online', 'Sensor Ready');
+}
+
+function resetSession() {
+  if (state.testing) stopTesting();
+  document.getElementById('btn-start').disabled = !warmupDone;
+  document.getElementById('btn-stop').disabled  = true;
+  document.getElementById('ctrl-session-id').textContent = 'None';
+  document.getElementById('card-session').textContent    = 'IDLE';
+  document.getElementById('card-session').className     = 'metric-value text-muted';
+  updateDashboard({smoke_value:null,classification:'—',status:'—',green_led:false,red_led:false,buzzer:false});
+  toast('Session reset', 'info');
+}
+
+function clearCurrentSession() {
+  resetSession();
+  document.getElementById('card-smoke-val').textContent      = '—';
+  document.getElementById('card-classification').textContent = '—';
+  document.getElementById('card-status').textContent         = '—';
+  toast('Session cleared', 'info');
+}
+
+// ── DASHBOARD UPDATE ──────────────────────────────────────────
+function updateDashboard(row) {
+  const isHaz  = row.status === 'Hazardous';
+  const isGood = row.status === 'Safe';
+  state.smokeValue = row.smoke_value; state.classification = row.classification; state.status = row.status;
+  state.greenLed = !!row.green_led; state.redLed = !!row.red_led; state.buzzer = !!row.buzzer;
+
+  const valEl = document.getElementById('banner-smoke-val');
+  valEl.textContent = row.smoke_value ?? '—';
+  valEl.className   = `smoke-val-num ${isHaz?'text-red':isGood?'text-green':'text-muted'}`;
+
+  document.getElementById('card-smoke-val').textContent      = row.smoke_value ?? '—';
+  document.getElementById('card-classification').textContent = row.classification || '—';
+  document.getElementById('card-status').textContent         = row.status || '—';
+  document.getElementById('card-class-wrap').className  = `metric-card ${isHaz?'hazard':isGood?'safe':''}`;
+  document.getElementById('card-status-wrap').className = `metric-card ${isHaz?'hazard':isGood?'safe':''}`;
+
+  const banner = document.getElementById('status-banner');
+  const bIcon  = document.getElementById('banner-icon');
+  const bTitle = document.getElementById('banner-title');
+  const bSub   = document.getElementById('banner-sub');
+
+  if (isHaz) {
+    banner.className = 'status-banner hazardous';
+    bIcon.className  = 'banner-indicator hazardous'; bIcon.textContent = '⚠️';
+    bTitle.textContent = '⚠ HAZARDOUS SMOKE DETECTED';
+    bSub.textContent   = 'Bad Smoke — Immediate action required';
+    updateSidebarStatus('error', 'HAZARD DETECTED');
+    updateNotifBadge(1);
+  } else if (isGood) {
+    banner.className = 'status-banner safe';
+    bIcon.className  = 'banner-indicator safe'; bIcon.textContent = '✅';
+    bTitle.textContent = '✅ SAFE — Good Emission';
+    bSub.textContent   = 'Good Smoke — Non-hazardous reading';
+    updateSidebarStatus('online', 'Testing — Safe');
+  }
+  updateLEDs(state.greenLed, state.redLed, state.buzzer);
+  pushRealtimeChart(row.smoke_value);
+}
+
+function setBannerIdle() {
+  document.getElementById('status-banner').className    = 'status-banner';
+  document.getElementById('banner-icon').textContent    = '💤';
+  document.getElementById('banner-title').textContent   = 'IDLE';
+  document.getElementById('banner-sub').textContent     = 'No active testing session';
+  document.getElementById('banner-smoke-val').textContent = '—';
+}
+function setBannerTesting() {
+  document.getElementById('banner-icon').textContent  = '🔬';
+  document.getElementById('banner-title').textContent = 'TESTING IN PROGRESS';
+  document.getElementById('banner-sub').textContent   = `Session: ${state.sessionId} — Awaiting sensor data`;
+}
+
+// ── LEDs ──────────────────────────────────────────────────────
+function updateLEDs(green, red, buzzer) {
+  const gb = document.getElementById('led-green-bulb'),  gs = document.getElementById('led-green-state');
+  const rb = document.getElementById('led-red-bulb'),    rs = document.getElementById('led-red-state');
+  const bb = document.getElementById('led-buzzer-bulb'), bs = document.getElementById('led-buzzer-state');
+  if (green) { gb.className='led-bulb green-on'; gs.className='led-state on';    gs.textContent='ON';      }
+  else       { gb.className='led-bulb';           gs.className='led-state off';   gs.textContent='OFF';     }
+  if (red)   { rb.className='led-bulb red-on';   rs.className='led-state alert'; rs.textContent='ALERT';   }
+  else       { rb.className='led-bulb';           rs.className='led-state off';   rs.textContent='OFF';     }
+  if (buzzer){ bb.className='led-bulb buzzer-on'; bs.className='led-state buzz';  bs.textContent='BUZZING'; }
+  else       { bb.className='led-bulb';           bs.className='led-state off';   bs.textContent='SILENT';  }
+}
+
+function updateNotifBadge(count) {
+  document.getElementById('hdr-notif-badge').textContent = count;
+  document.getElementById('log-badge').textContent = state.allLogs.length;
+}
+
+// ── CHARTS ────────────────────────────────────────────────────
+const charts = {};
+
+function chartDefaults() {
+  Chart.defaults.color       = '#7ab8d4';
+  Chart.defaults.borderColor = 'rgba(0,200,255,0.1)';
+  Chart.defaults.font.family = 'Exo 2, sans-serif';
+}
+
+function initCharts() {
+  chartDefaults();
+  charts.realtime = new Chart(document.getElementById('chart-realtime'), {
+    type:'line',
+    data:{ labels:[], datasets:[{ label:'Smoke Value', data:[], borderColor:'#00c8ff',
+      backgroundColor:'rgba(0,200,255,0.07)', borderWidth:2, fill:true, tension:0.4, pointRadius:3, pointBackgroundColor:'#00c8ff' }] },
+    options:{ responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false}, tooltip:{mode:'index',intersect:false} },
+      scales:{ x:{grid:{color:'rgba(0,200,255,0.05)'},ticks:{maxTicksLimit:10}},
+               y:{grid:{color:'rgba(0,200,255,0.05)'},min:0,max:1023,title:{display:true,text:'ADC Value'}} },
+      animation:{duration:300} }
+  });
+  charts.donut = new Chart(document.getElementById('chart-donut'), {
+    type:'doughnut',
+    data:{ labels:['Good Smoke (Safe)','Bad Smoke (Hazardous)'],
+      datasets:[{ data:[0,0], backgroundColor:['rgba(0,255,136,0.7)','rgba(255,51,85,0.7)'],
+        borderColor:['rgba(0,255,136,0.3)','rgba(255,51,85,0.3)'], borderWidth:1 }] },
+    options:{ responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{position:'bottom',labels:{boxWidth:12,padding:14}} }, cutout:'65%', animation:{duration:400} }
+  });
+  charts.liveBig = new Chart(document.getElementById('chart-live-big'), {
+    type:'line',
+    data:{ labels:[], datasets:[
+      { label:'Smoke Value', data:[], borderColor:'#00c8ff', backgroundColor:'rgba(0,200,255,0.05)', borderWidth:2, fill:true, tension:0.4, pointRadius:2 },
+      { label:'Threshold',   data:[], borderColor:'rgba(255,51,85,0.6)', borderDash:[6,4], borderWidth:1.5, fill:false, pointRadius:0 }
+    ]},
+    options:{ responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{display:true}},
+      scales:{ x:{grid:{color:'rgba(0,200,255,0.05)'}}, y:{min:0,max:1023,grid:{color:'rgba(0,200,255,0.05)'}} },
+      animation:{duration:200} }
+  });
+  charts.daily = new Chart(document.getElementById('chart-daily'), {
+    type:'bar',
+    data:{ labels:getLast7Days(), datasets:[
+      { label:'Safe',       data:Array(7).fill(0), backgroundColor:'rgba(0,255,136,0.5)', borderColor:'rgba(0,255,136,0.8)', borderWidth:1 },
+      { label:'Hazardous',  data:Array(7).fill(0), backgroundColor:'rgba(255,51,85,0.5)',  borderColor:'rgba(255,51,85,0.8)',  borderWidth:1 }
+    ]},
+    options:{ responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{position:'top'}},
+      scales:{ x:{grid:{color:'rgba(0,200,255,0.05)'}}, y:{grid:{color:'rgba(0,200,255,0.05)'},beginAtZero:true} } }
+  });
+  charts.weekly = new Chart(document.getElementById('chart-weekly'), {
+    type:'bar',
+    data:{ labels:['4 weeks ago','3 weeks ago','2 weeks ago','Last week'], datasets:[
+      { label:'Safe',      data:[0,0,0,0], backgroundColor:'rgba(0,255,136,0.4)' },
+      { label:'Hazardous', data:[0,0,0,0], backgroundColor:'rgba(255,51,85,0.4)' }
+    ]},
+    options:{ responsive:true, maintainAspectRatio:false,
+      scales:{ x:{grid:{color:'rgba(0,200,255,0.05)'}}, y:{grid:{color:'rgba(0,200,255,0.05)'},beginAtZero:true} } }
+  });
+  const monthNames=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  charts.monthly = new Chart(document.getElementById('chart-monthly'), {
+    type:'line',
+    data:{ labels:monthNames, datasets:[
+      { label:'Safe',      data:Array(12).fill(0), borderColor:'rgba(0,255,136,0.8)', fill:false, tension:0.4 },
+      { label:'Hazardous', data:Array(12).fill(0), borderColor:'rgba(255,51,85,0.8)', fill:false, tension:0.4 }
+    ]},
+    options:{ responsive:true, maintainAspectRatio:false,
+      scales:{ x:{grid:{color:'rgba(0,200,255,0.05)'}}, y:{grid:{color:'rgba(0,200,255,0.05)'},beginAtZero:true} } }
+  });
+  charts.hazard = new Chart(document.getElementById('chart-hazard'), {
+    type:'bar',
+    data:{ labels:getLast7Days(), datasets:[{ label:'Hazard Events', data:Array(7).fill(0),
+      backgroundColor:'rgba(255,51,85,0.5)', borderColor:'rgba(255,51,85,0.8)', borderWidth:1 }] },
+    options:{ responsive:true, maintainAspectRatio:false,
+      scales:{ x:{grid:{color:'rgba(0,200,255,0.05)'}}, y:{grid:{color:'rgba(0,200,255,0.05)'},beginAtZero:true} } }
+  });
+}
+
+function getLast7Days() {
+  return Array.from({length:7},(_,i)=>{
+    const d=new Date(); d.setDate(d.getDate()-(6-i)); return `${d.getMonth()+1}/${d.getDate()}`;
+  });
+}
+
+const MAX_REALTIME_POINTS = 60;
+function pushRealtimeChart(val) {
+  if (val === null || val === undefined) return;
+  const now = new Date();
+  const label = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
+  [charts.realtime, charts.liveBig].forEach((c,i) => {
+    if (!c) return;
+    c.data.labels.push(label);
+    c.data.datasets[0].data.push(val);
+    if (i===1 && c.data.datasets[1]) c.data.datasets[1].data.push(SMOKE_THRESHOLD);
+    if (c.data.labels.length > MAX_REALTIME_POINTS) { c.data.labels.shift(); c.data.datasets.forEach(ds=>ds.data.shift()); }
+    c.update('none');
+  });
+}
+
+function updateDonutChart() {
+  if (!charts.donut) return;
+  charts.donut.data.datasets[0].data = [
+    state.allLogs.filter(r=>r.status==='Safe').length,
+    state.allLogs.filter(r=>r.status==='Hazardous').length
+  ];
+  charts.donut.update();
+}
+
+function rebuildAnalyticsCharts(logs) {
+  if (!charts.daily) return;
+  const labels=getLast7Days(), safeCounts=Array(7).fill(0), hazCounts=Array(7).fill(0);
+  const today=new Date();
+  logs.forEach(log => {
+    const d=new Date(log.created_at);
+    for(let i=0;i<7;i++){
+      const ref=new Date(today); ref.setDate(today.getDate()-(6-i));
+      if(d.toDateString()===ref.toDateString()){
+        if(log.status==='Safe') safeCounts[i]++; else hazCounts[i]++;
+      }
+    }
+  });
+  charts.daily.data.labels=labels; charts.daily.data.datasets[0].data=safeCounts; charts.daily.data.datasets[1].data=hazCounts; charts.daily.update();
+  charts.hazard.data.labels=labels; charts.hazard.data.datasets[0].data=hazCounts; charts.hazard.update();
+}
+
+function switchChartView(view, el) {
+  document.querySelectorAll('.chart-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+}
+
+// ── REALTIME SUBSCRIPTION ─────────────────────────────────────
+function startRealtimeSubscription() {
+  if (!sb) { toast('Supabase not configured — demo mode active', 'warning'); setHeaderDot('hdr-supabase-dot','error'); startDemoMode(); return; }
+  setHeaderDot('hdr-supabase-dot','online');
+  toast('Connected to Supabase Realtime','success');
+  sb.channel('smoke-logs-rt')
+    .on('postgres_changes',{event:'INSERT',schema:'public',table:'smoke_logs'},payload=>handleNewLog(payload.new))
+    .subscribe();
+  sb.channel('sensor-status-rt')
+    .on('postgres_changes',{event:'UPDATE',schema:'public',table:'sensor_status'},payload=>handleSensorStatus(payload.new))
+    .subscribe();
+}
+
+function handleNewLog(row) {
+  state.allLogs.unshift(row);
+  if (row.session_status !== 'completed' || state.testing) updateDashboard(row);
+  if (row.status === 'Hazardous') toast(`⚠️ HAZARD: ${row.test_id} — Value: ${row.smoke_value}`, 'error', 6000);
+  refreshLogTable(); updateTodayCounts(); updateDonutChart(); rebuildAnalyticsCharts(state.allLogs);
+  document.getElementById('log-badge').textContent = state.allLogs.length;
+}
+
+function handleSensorStatus(data) {
+  // Sync warmup banner with ESP32's actual countdown
+  if (typeof data.warmup_remaining === 'number') syncWarmupFromESP32(data.warmup_remaining);
+
+  state.esp32Online = data.is_online; state.esp32Data = data;
+  setHeaderDot('hdr-esp32-dot', data.is_online ? 'online' : 'error');
+  document.getElementById('card-esp32').textContent     = data.is_online ? 'ONLINE' : 'OFFLINE';
+  document.getElementById('card-esp32').className      = `metric-value ${data.is_online?'text-green':'text-red'}`;
+  document.getElementById('card-esp32-rssi').textContent= data.rssi ? `RSSI: ${data.rssi} dBm` : 'No signal';
+  document.getElementById('ss-online').textContent     = data.is_online ? 'ONLINE' : 'OFFLINE';
+  document.getElementById('ss-init').textContent       = data.is_initialized ? 'YES' : 'NO';
+  document.getElementById('ss-rssi').textContent       = data.rssi ?? '—';
+  document.getElementById('ss-ip').textContent         = data.ip_address ?? '—';
+  document.getElementById('ss-fw').textContent         = data.firmware_ver ?? '—';
+  const rem = data.warmup_remaining;
+  document.getElementById('ss-warmup').textContent     = rem > 0
+    ? `${String(Math.floor(rem/60)).padStart(2,'0')}:${String(rem%60).padStart(2,'0')}`
+    : data.is_initialized ? 'READY' : '—';
+  if (data.last_seen) {
+    const t = new Date(data.last_seen);
+    document.getElementById('ss-lastseen').textContent = `${t.toLocaleDateString()} ${t.toLocaleTimeString()}`;
+  }
+}
+
+// ── DEMO MODE ─────────────────────────────────────────────────
+function startDemoMode() {
+  setInterval(() => {
+    if (!state.testing) return;
+    const val   = Math.floor(Math.random()*700)+50;
+    const isHaz = val > SMOKE_THRESHOLD;
+    handleNewLog({id:crypto.randomUUID(),test_id:state.sessionId||'DEMO-001',smoke_value:val,
+      classification:isHaz?'Bad Smoke':'Good Smoke',status:isHaz?'Hazardous':'Safe',
+      green_led:!isHaz,red_led:isHaz,buzzer:isHaz,session_status:'active',created_at:new Date().toISOString()});
+  }, 1500);
+}
+
+// ── LOAD INITIAL DATA ─────────────────────────────────────────
+async function loadInitialData() {
+  if (!sb) return;
+  try {
+    const { data, error } = await sb.from('smoke_logs').select('*').order('created_at',{ascending:false}).limit(500);
+    if (error) throw error;
+    state.allLogs = data || [];
+    refreshLogTable(); updateTodayCounts(); updateDonutChart(); rebuildAnalyticsCharts(state.allLogs);
+    document.getElementById('log-badge').textContent = state.allLogs.length;
+    const { data: sData } = await sb.from('sensor_status').select('*').single();
+    if (sData) handleSensorStatus(sData);
+  } catch(e) { toast('Could not load data from Supabase. Check credentials.','error'); }
+}
+
+// ── TODAY COUNTS ──────────────────────────────────────────────
+function updateTodayCounts() {
+  const today = new Date().toDateString();
+  const tl = state.allLogs.filter(r => new Date(r.created_at).toDateString()===today && r.session_status==='completed');
+  state.totalToday=tl.length; state.safeToday=tl.filter(r=>r.status==='Safe').length; state.hazardToday=tl.filter(r=>r.status==='Hazardous').length;
+  document.getElementById('card-total-today').textContent  = state.totalToday;
+  document.getElementById('card-safe-today').textContent   = state.safeToday;
+  document.getElementById('card-hazard-today').textContent = state.hazardToday;
+}
+
+// ── LOG TABLE ─────────────────────────────────────────────────
+function refreshLogTable() { filterLogs(); }
+
+function filterLogs() {
+  const q      = (document.getElementById('log-search')?.value||'').toLowerCase();
+  const status = document.getElementById('log-filter-status')?.value||'';
+  const sess   = document.getElementById('log-filter-session')?.value||'';
+  state.filteredLogs = state.allLogs.filter(r => {
+    const mq = !q || r.test_id?.toLowerCase().includes(q)||r.classification?.toLowerCase().includes(q)||r.status?.toLowerCase().includes(q);
+    return mq && (!status||r.status===status) && (!sess||r.session_status===sess);
+  });
+  state.page = 1; renderLogTable();
+}
+
+function sortLogs(key) {
+  if (state.sortKey===key) state.sortDir = state.sortDir==='asc'?'desc':'asc';
+  else { state.sortKey=key; state.sortDir='desc'; }
+  renderLogTable();
+}
+
+function renderLogTable() {
+  const sorted = [...state.filteredLogs].sort((a,b)=>{
+    const av=a[state.sortKey], bv=b[state.sortKey];
+    if(state.sortDir==='asc') return av<bv?-1:av>bv?1:0;
+    return av>bv?-1:av<bv?1:0;
+  });
+  const start = (state.page-1)*state.pageSize;
+  const paged = sorted.slice(start, start+state.pageSize);
+  const total = sorted.length;
+  const pages = Math.ceil(total/state.pageSize);
+  const tbody = document.getElementById('logs-tbody');
+  tbody.innerHTML = paged.length === 0
+    ? `<tr><td colspan="9"><div class="empty-state"><div class="empty-state-icon">🔍</div><p>No records match your filter.</p></div></td></tr>`
+    : paged.map(r => {
+        const d=new Date(r.created_at); const isBad=r.status==='Hazardous';
+        return `<tr>
+          <td class="test-id">${r.test_id||'—'}</td>
+          <td>${d.toLocaleDateString()}</td>
+          <td style="font-family:var(--font-mono);font-size:11px">${d.toLocaleTimeString()}</td>
+          <td class="smoke-num" style="color:${isBad?'var(--red)':'var(--green)'}">${r.smoke_value}</td>
+          <td><span class="badge ${r.classification==='Bad Smoke'?'badge-bad':'badge-good'}">${r.classification}</span></td>
+          <td><span class="badge ${isBad?'badge-hazard':'badge-safe'}">${r.status}</span></td>
+          <td><span class="led-dot ${r.green_led?'g':'off'}"></span><span class="led-dot ${r.red_led?'r':'off'}" style="margin-left:4px"></span></td>
+          <td><span class="led-dot ${r.buzzer?'r':'off'}"></span></td>
+          <td><span class="badge ${r.session_status==='active'?'badge-active':'badge-completed'}">${r.session_status}</span></td>
+        </tr>`;
+      }).join('');
+  document.getElementById('log-pagination-info').textContent = `${total} records — page ${state.page} of ${Math.max(1,pages)}`;
+  const btns = document.getElementById('log-pagination-btns');
+  btns.innerHTML = '';
+  if (pages > 1) {
+    const prev = document.createElement('button');
+    prev.className='page-btn'; prev.textContent='‹'; prev.disabled=state.page===1;
+    prev.onclick=()=>{if(state.page>1){state.page--;renderLogTable();}};
+    btns.appendChild(prev);
+  }
+  for (let i=1; i<=pages; i++) {
+    if (pages>7 && i>2 && i<pages-1 && Math.abs(i-state.page)>1) {
+      if (i===3||i===pages-2) btns.innerHTML+=`<span style="color:var(--text-muted);padding:0 4px">…</span>`;
+      continue;
+    }
+    const btn=document.createElement('button');
+    btn.className=`page-btn ${i===state.page?'active':''}`; btn.textContent=i;
+    btn.onclick=()=>{state.page=i;renderLogTable();}; btns.appendChild(btn);
+  }
+  if (pages > 1) {
+    const next=document.createElement('button');
+    next.className='page-btn'; next.textContent='›'; next.disabled=state.page===pages;
+    next.onclick=()=>{if(state.page<pages){state.page++;renderLogTable();}};
+    btns.appendChild(next);
+  }
+}
+
+function globalSearch(val) {
+  document.getElementById('log-search').value = val;
+  filterLogs();
+  if (val && state.allLogs.some(r=>r.test_id?.toLowerCase().includes(val.toLowerCase())))
+    showSection('logs', document.querySelector('[data-section=logs]'));
+}
+
+// ── QUEUE ─────────────────────────────────────────────────────
+function addToQueue() {
+  const input=document.getElementById('queue-input'), val=input.value.trim();
+  if (!val) return;
+  state.queue.push({name:val,status:'waiting'}); input.value=''; renderQueue();
+  toast(`"${val}" added to queue`,'info',2000);
+}
+function clearQueue() { state.queue=[]; renderQueue(); }
+function renderQueue() {
+  const el=document.getElementById('queue-list');
+  if (!state.queue.length) { el.innerHTML=`<div class="empty-state"><div class="empty-state-icon">🚫</div><p>No vehicles in queue.</p></div>`; return; }
+  el.innerHTML=state.queue.map((v,i)=>`
+    <div class="queue-item ${v.status==='testing'?'current':''}">
+      <div class="queue-num">#${String(i+1).padStart(2,'0')}</div>
+      <div class="queue-icon">${v.status==='done'?'✅':v.status==='testing'?'🔬':'🚗'}</div>
+      <div class="queue-name">${v.name}</div>
+      <span class="queue-status-badge ${v.status==='testing'?'qs-testing':v.status==='done'?'qs-done':'qs-waiting'}">
+        ${v.status==='testing'?'Testing...':v.status==='done'?'Done':'Waiting'}
+      </span>
+    </div>`).join('');
+}
+
+// ── EXPORT ────────────────────────────────────────────────────
+function exportCSV() {
+  const rows = getFilteredExportData();
+  const headers = ['Test ID','Date','Time','Smoke Value','Classification','Status','Green LED','Red LED','Buzzer','Session'];
+  const csv = [headers.join(','), ...rows.map(r=>{
+    const d=new Date(r.created_at);
+    return [r.test_id,d.toLocaleDateString(),d.toLocaleTimeString(),r.smoke_value,r.classification,r.status,r.green_led,r.red_led,r.buzzer,r.session_status].map(v=>`"${v}"`).join(',');
+  })].join('\n');
+  const a=document.createElement('a'); a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+  a.download=`TROYIKZ_report_${Date.now()}.csv`; a.click();
+  toast('CSV exported!','success');
+}
+
+function generatePDF() {
+  if (typeof window.jspdf==='undefined') { toast('jsPDF not loaded','error'); return; }
+  const {jsPDF}=window.jspdf, doc=new jsPDF();
+  doc.setFillColor(5,13,26); doc.rect(0,0,210,35,'F');
+  doc.setTextColor(0,200,255); doc.setFont('helvetica','bold'); doc.setFontSize(20); doc.text('TROYIKZ',14,16);
+  doc.setFontSize(9); doc.setTextColor(122,184,212); doc.text('Smart Smoke Detection & Hazard Classification System',14,23);
+  doc.setFontSize(8); doc.text(`Generated: ${new Date().toLocaleString()}`,14,30);
+  doc.setTextColor(40,40,40); doc.setFontSize(11); doc.setFont('helvetica','bold'); doc.text('Summary Statistics',14,48);
+  doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(80);
+  doc.text(`Total Tests: ${state.allLogs.length}`,14,56);
+  doc.text(`Safe: ${state.allLogs.filter(r=>r.status==='Safe').length}`,60,56);
+  doc.text(`Hazardous: ${state.allLogs.filter(r=>r.status==='Hazardous').length}`,100,56);
+  const rows=getFilteredExportData().slice(0,200);
+  doc.autoTable({startY:64,
+    head:[['Test ID','Date','Time','Smoke','Classification','Status','G-LED','R-LED','Buzzer']],
+    body:rows.map(r=>{const d=new Date(r.created_at);return[r.test_id,d.toLocaleDateString(),d.toLocaleTimeString(),r.smoke_value,r.classification,r.status,r.green_led?'ON':'OFF',r.red_led?'ON':'OFF',r.buzzer?'ON':'OFF'];}),
+    styles:{fontSize:7,cellPadding:2},headStyles:{fillColor:[5,13,26],textColor:[0,200,255]},alternateRowStyles:{fillColor:[245,248,255]}
+  });
+  doc.save(`TROYIKZ_report_${Date.now()}.pdf`);
+  toast('PDF report downloaded!','success');
+}
+
+function getFilteredExportData() {
+  const period=document.getElementById('report-period')?.value||'today', now=new Date();
+  return state.allLogs.filter(r=>{
+    const d=new Date(r.created_at);
+    if(period==='today')  return d.toDateString()===now.toDateString();
+    if(period==='week')   {const w=new Date(now);w.setDate(now.getDate()-7);return d>=w;}
+    if(period==='month')  {const m=new Date(now);m.setMonth(now.getMonth()-1);return d>=m;}
+    if(period==='custom') {const from=document.getElementById('report-from')?.value,to=document.getElementById('report-to')?.value;if(from)return d>=new Date(from)&&(!to||d<=new Date(to+'T23:59:59'));}
+    return true;
+  });
+}
+
+function onReportPeriodChange() {
+  document.getElementById('report-date-range').style.display =
+    document.getElementById('report-period').value==='custom' ? 'flex' : 'none';
+}
+
+// ── THEME ─────────────────────────────────────────────────────
+function applyTheme(name, el) {
+  document.body.dataset.theme = name;
+  localStorage.setItem('troyikz_theme', name);
+  document.querySelectorAll('.theme-option').forEach(o=>o.classList.remove('selected'));
+  if (el) el.classList.add('selected');
+  closeThemeModal();
+  toast(`Theme: ${name}`,'info',2000);
+}
+function toggleTheme() {
+  applyTheme(document.body.dataset.theme==='light'?'dark':'light', null);
+}
+function openThemeModal()  { document.getElementById('theme-modal').classList.add('open'); }
+function closeThemeModal() { document.getElementById('theme-modal').classList.remove('open'); }
+document.body.dataset.theme = localStorage.getItem('troyikz_theme') || 'dark';
+
+// ── INIT ──────────────────────────────────────────────────────
+window.onclick = e => { if (e.target===document.getElementById('theme-modal')) closeThemeModal(); };
+
+// Start everything immediately — warmup only blocks "Start Testing"
+startWarmupBanner();
+initCharts();
+startRealtimeSubscription();
+loadInitialData();
+updateSidebarStatus('warning', 'Sensor Warming Up');
+</script>
+</body>
+</html>
