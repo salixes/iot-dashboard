@@ -71,7 +71,7 @@ body::before{content:'';position:fixed;inset:0;
   linear-gradient(90deg,rgba(0,200,255,0.03) 1px,transparent 1px);
   background-size:40px 40px;pointer-events:none;z-index:0;}
 
-/* ── WARMUP BANNER (non-blocking) ── */
+/* ── WARMUP BANNER ── */
 #warmup-banner {
   display: none;
   position: sticky;
@@ -278,7 +278,6 @@ body::before{content:'';position:fixed;inset:0;
 .chart-tab{padding:4px 10px;border-radius:4px;font-size:10px;font-weight:600;cursor:pointer;
   color:var(--text-muted);background:transparent;border:1px solid transparent;transition:all var(--transition);}
 .chart-tab.active{background:var(--bg-glass);border-color:var(--border);color:var(--cyan);}
-.chart-tab:hover:not(.active){color:var(--text-secondary);}
 
 /* ── HISTORY TABLE ── */
 .history-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);
@@ -289,7 +288,6 @@ body::before{content:'';position:fixed;inset:0;
   border-radius:20px;padding:7px 14px 7px 32px;color:var(--text-primary);font-family:var(--font-body);
   font-size:12px;outline:none;transition:border-color var(--transition);}
 .history-search:focus{border-color:var(--border-bright);}
-.history-search::placeholder{color:var(--text-muted);}
 select.filter-select{background:var(--bg-glass);border:1px solid var(--border);border-radius:var(--radius-sm);
   padding:7px 28px 7px 12px;color:var(--text-secondary);font-family:var(--font-body);font-size:12px;
   outline:none;cursor:pointer;appearance:none;transition:border-color var(--transition);}
@@ -299,7 +297,6 @@ thead th{padding:12px 16px;text-align:left;font-size:10px;font-weight:600;color:
   text-transform:uppercase;letter-spacing:2px;background:rgba(0,200,255,0.03);
   border-bottom:1px solid var(--border);cursor:pointer;user-select:none;transition:color var(--transition);white-space:nowrap;}
 thead th:hover{color:var(--cyan);}
-thead th.sorted{color:var(--cyan);}
 tbody tr{border-bottom:1px solid rgba(255,255,255,0.03);transition:background var(--transition);}
 tbody tr:hover{background:var(--bg-glass);}
 tbody tr:last-child{border-bottom:none;}
@@ -372,22 +369,12 @@ td.smoke-num{font-family:var(--font-mono);font-weight:600;}
 .qs-waiting{background:rgba(255,255,255,0.04);color:var(--text-muted);border:1px solid var(--border);}
 .qs-done{background:rgba(0,255,136,0.08);color:var(--green);border:1px solid var(--green-dim);}
 
-/* ── WARMUP STEPS (sensor status section) ── */
-.warmup-steps{display:flex;flex-direction:column;gap:10px;width:400px;max-width:90vw;}
-.warmup-step-row{display:flex;align-items:center;gap:14px;padding:10px 16px;
-  background:rgba(255,255,255,0.02);border:1px solid var(--border);border-radius:var(--radius-sm);
-  font-size:12px;color:var(--text-muted);transition:all var(--transition);}
-.warmup-step-row.done{border-color:var(--green-dim);color:var(--green);background:rgba(0,255,136,0.05);}
-.warmup-step-row.active{border-color:rgba(255,204,0,0.3);color:var(--yellow);background:rgba(255,204,0,0.04);}
-.step-icon{font-size:18px;flex-shrink:0;}
-
 /* ── EMPTY STATE ── */
 .empty-state{padding:40px 20px;text-align:center;color:var(--text-muted);}
 .empty-state-icon{font-size:40px;margin-bottom:12px;}
 .empty-state p{font-size:13px;}
 
 /* ── MISC ── */
-.section-divider{height:1px;background:var(--border);margin:20px 0;}
 .tooltip-wrap{position:relative;}
 .tooltip-wrap:hover .tooltip{display:block;}
 .tooltip{display:none;position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);
@@ -395,12 +382,27 @@ td.smoke-num{font-family:var(--font-mono);font-weight:600;}
   font-size:11px;color:var(--text-primary);white-space:nowrap;z-index:999;backdrop-filter:blur(10px);}
 .text-cyan{color:var(--cyan);}.text-green{color:var(--green);}
 .text-red{color:var(--red);}.text-yellow{color:var(--yellow);}.text-muted{color:var(--text-muted);}
-::-webkit-scrollbar{width:6px;}
-::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar{width:6px;}::-webkit-scrollbar-track{background:transparent;}
 ::-webkit-scrollbar-thumb{background:var(--border);border-radius:10px;}
 ::-webkit-scrollbar-thumb:hover{background:var(--border-bright);}
 
-/* ── RESPONSIVE ── */
+/* ── CONNECTION STATUS BAR ── */
+#conn-status-bar {
+  display: none;
+  position: sticky;
+  top: var(--header-h);
+  z-index: 84;
+  background: rgba(255,51,85,0.12);
+  border-bottom: 1px solid var(--red-dim);
+  padding: 8px 24px;
+  font-size: 12px;
+  color: var(--red);
+  text-align: center;
+  font-family: var(--font-mono);
+  letter-spacing: 1px;
+}
+#conn-status-bar.visible { display: block; }
+
 @media(max-width:900px){
   :root{--sidebar-w:0px;}
   .sidebar{transform:translateX(-240px);}
@@ -420,7 +422,7 @@ td.smoke-num{font-family:var(--font-mono);font-weight:600;}
 </head>
 <body data-theme="dark">
 
-<!-- Warmup banner — non-blocking, sits below header -->
+<!-- Warmup banner -->
 <div id="warmup-banner">
   <span class="wb-icon">🌡️</span>
   <span class="wb-label">SENSOR WARMING UP</span>
@@ -435,9 +437,10 @@ td.smoke-num{font-family:var(--font-mono);font-weight:600;}
   <button class="wb-dismiss" onclick="dismissWarmupBanner()">Dismiss ✕</button>
 </div>
 
-<div class="app-shell">
+<!-- Connection error bar -->
+<div id="conn-status-bar">⚠ Cannot connect to Supabase — check your credentials or network connection</div>
 
-  <!-- SIDEBAR -->
+<div class="app-shell">
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-logo">
       <div class="logo-icon">TZ</div>
@@ -487,7 +490,6 @@ td.smoke-num{font-family:var(--font-mono);font-weight:600;}
     </div>
   </aside>
 
-  <!-- MAIN CONTENT -->
   <div class="main-content">
     <header class="header">
       <div class="header-search">
@@ -525,9 +527,7 @@ td.smoke-num{font-family:var(--font-mono);font-weight:600;}
             <div class="section-title">Dashboard</div>
             <div class="section-sub">Real-time smoke emission monitoring overview</div>
           </div>
-          <div style="display:flex;gap:8px">
-            <span class="badge badge-active" id="realtime-badge">● LIVE</span>
-          </div>
+          <span class="badge badge-active" id="realtime-badge">● LIVE</span>
         </div>
         <div class="status-banner" id="status-banner">
           <div class="banner-indicator safe" id="banner-icon">✅</div>
@@ -722,12 +722,12 @@ td.smoke-num{font-family:var(--font-mono);font-weight:600;}
             <table>
               <thead>
                 <tr>
-                  <th onclick="sortLogs('test_id')">Test ID <span class="sort-arrow">↕</span></th>
-                  <th onclick="sortLogs('created_at')">Date <span class="sort-arrow">↕</span></th>
-                  <th onclick="sortLogs('created_at')">Time <span class="sort-arrow">↕</span></th>
-                  <th onclick="sortLogs('smoke_value')">Smoke Value <span class="sort-arrow">↕</span></th>
-                  <th onclick="sortLogs('classification')">Classification <span class="sort-arrow">↕</span></th>
-                  <th onclick="sortLogs('status')">Status <span class="sort-arrow">↕</span></th>
+                  <th onclick="sortLogs('test_id')">Test ID</th>
+                  <th onclick="sortLogs('created_at')">Date</th>
+                  <th onclick="sortLogs('created_at')">Time</th>
+                  <th onclick="sortLogs('smoke_value')">Smoke Value</th>
+                  <th onclick="sortLogs('classification')">Classification</th>
+                  <th onclick="sortLogs('status')">Status</th>
                   <th>LEDs</th><th>Buzzer</th><th>Session</th>
                 </tr>
               </thead>
@@ -778,9 +778,9 @@ td.smoke-num{font-family:var(--font-mono);font-weight:600;}
         </div>
       </section>
 
-    </div><!-- end page-content -->
-  </div><!-- end main-content -->
-</div><!-- end app-shell -->
+    </div>
+  </div>
+</div>
 
 <!-- THEME MODAL -->
 <div class="modal-overlay" id="theme-modal">
@@ -822,24 +822,32 @@ td.smoke-num{font-family:var(--font-mono);font-weight:600;}
 // ── CONFIG ────────────────────────────────────────────────────
 const SUPABASE_URL  = 'https://crottwcwsasedjzvydbp.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNyb3R0d2N3c2FzZWRqenZ5ZGJwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkyODcxMzIsImV4cCI6MjA5NDg2MzEzMn0.qQU8eT4pkSIBILkLXy2gkE_4RDpybTxrfRjYD72MiGs';
-const SMOKE_THRESHOLD   = 400;
-const WARMUP_DURATION_MS = 180000; // 3 minutes — match ESP32
+const SMOKE_THRESHOLD    = 900;   // matches firmware v1.0.3
+const WARMUP_DURATION_MS = 180000;
 
 // ── SUPABASE INIT ─────────────────────────────────────────────
 let sb = null;
-try { sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON); } catch(e) {}
+try {
+  sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+} catch(e) {
+  console.error('Supabase init failed:', e);
+}
 
 // ── APP STATE ─────────────────────────────────────────────────
 const state = {
-  testing:false, sessionId:null, smokeValue:0, classification:'—', status:'—',
-  greenLed:false, redLed:false, buzzer:false, esp32Online:false, esp32Data:{},
-  allLogs:[], filteredLogs:[], sortKey:'created_at', sortDir:'desc',
-  page:1, pageSize:15, queue:[],
+  testing:false, sessionId:null,
+  smokeValue:0, classification:'—', status:'—',
+  greenLed:false, redLed:false, buzzer:false,
+  esp32Online:false, esp32Data:{},
+  allLogs:[], filteredLogs:[],
+  sortKey:'created_at', sortDir:'desc',
+  page:1, pageSize:15,
+  queue:[],
   testCounter: parseInt(localStorage.getItem('troyikz_counter')||'0'),
   totalToday:0, safeToday:0, hazardToday:0,
 };
 
-// ── WARMUP — non-blocking ─────────────────────────────────────
+// ── WARMUP ────────────────────────────────────────────────────
 const warmupStart = Date.now();
 let warmupDone = false;
 
@@ -875,8 +883,7 @@ function activateWarmupStep(active) {
 function completeWarmup() {
   warmupDone = true;
   activateWarmupStep(5);
-  const banner = document.getElementById('warmup-banner');
-  if (banner) banner.classList.remove('visible');
+  document.getElementById('warmup-banner').classList.remove('visible');
   document.getElementById('btn-start').disabled = false;
   updateSidebarStatus('online', 'Sensor Ready');
   setHeaderDot('hdr-esp32-dot', 'online');
@@ -887,7 +894,7 @@ function dismissWarmupBanner() {
   document.getElementById('warmup-banner').classList.remove('visible');
 }
 
-// Sync banner with ESP32 warmup_remaining from Supabase realtime
+// Sync warmup with actual ESP32 countdown from Supabase
 function syncWarmupFromESP32(remaining) {
   if (remaining <= 0 && !warmupDone) { completeWarmup(); return; }
   if (warmupDone) return;
@@ -929,7 +936,8 @@ function updateSidebarStatus(cls, text) {
   document.getElementById('sidebar-status-text').textContent = text;
 }
 function setHeaderDot(id, cls) {
-  document.getElementById(id).className = 'status-dot ' + cls;
+  const el = document.getElementById(id);
+  if (el) el.className = 'status-dot ' + cls;
 }
 
 // ── TOAST ─────────────────────────────────────────────────────
@@ -956,14 +964,14 @@ function startTesting() {
   state.sessionId = generateTestId();
   document.getElementById('btn-start').disabled = true;
   document.getElementById('btn-stop').disabled  = false;
-  document.getElementById('ctrl-session-id').textContent     = state.sessionId;
-  document.getElementById('card-session').textContent        = 'ACTIVE';
-  document.getElementById('card-session').className         = 'metric-value text-cyan';
-  document.getElementById('card-session-id').textContent    = state.sessionId;
-  document.getElementById('card-session-wrap').className    = 'metric-card cyan';
+  document.getElementById('ctrl-session-id').textContent  = state.sessionId;
+  document.getElementById('card-session').textContent     = 'ACTIVE';
+  document.getElementById('card-session').className      = 'metric-value text-cyan';
+  document.getElementById('card-session-id').textContent = state.sessionId;
+  document.getElementById('card-session-wrap').className = 'metric-card cyan';
   if (state.queue.length > 0) { state.queue[0].status = 'testing'; renderQueue(); }
-  toast(`Session ${state.sessionId} started`, 'success');
   setBannerTesting();
+  toast(`Session ${state.sessionId} started`, 'success');
 }
 
 function stopTesting() {
@@ -1007,8 +1015,12 @@ function clearCurrentSession() {
 function updateDashboard(row) {
   const isHaz  = row.status === 'Hazardous';
   const isGood = row.status === 'Safe';
-  state.smokeValue = row.smoke_value; state.classification = row.classification; state.status = row.status;
-  state.greenLed = !!row.green_led; state.redLed = !!row.red_led; state.buzzer = !!row.buzzer;
+  state.smokeValue     = row.smoke_value;
+  state.classification = row.classification;
+  state.status         = row.status;
+  state.greenLed = !!row.green_led;
+  state.redLed   = !!row.red_led;
+  state.buzzer   = !!row.buzzer;
 
   const valEl = document.getElementById('banner-smoke-val');
   valEl.textContent = row.smoke_value ?? '—';
@@ -1039,6 +1051,7 @@ function updateDashboard(row) {
     bSub.textContent   = 'Good Smoke — Non-hazardous reading';
     updateSidebarStatus('online', 'Testing — Safe');
   }
+
   updateLEDs(state.greenLed, state.redLed, state.buzzer);
   pushRealtimeChart(row.smoke_value);
 }
@@ -1070,39 +1083,46 @@ function updateLEDs(green, red, buzzer) {
 }
 
 function updateNotifBadge(count) {
-  document.getElementById('hdr-notif-badge').textContent = count;
-  document.getElementById('log-badge').textContent = state.allLogs.length;
+  const nb = document.getElementById('hdr-notif-badge');
+  if (nb) nb.textContent = count;
+  const lb = document.getElementById('log-badge');
+  if (lb) lb.textContent = state.allLogs.length;
 }
 
 // ── CHARTS ────────────────────────────────────────────────────
 const charts = {};
 
-function chartDefaults() {
+function initCharts() {
   Chart.defaults.color       = '#7ab8d4';
   Chart.defaults.borderColor = 'rgba(0,200,255,0.1)';
   Chart.defaults.font.family = 'Exo 2, sans-serif';
-}
 
-function initCharts() {
-  chartDefaults();
   charts.realtime = new Chart(document.getElementById('chart-realtime'), {
     type:'line',
-    data:{ labels:[], datasets:[{ label:'Smoke Value', data:[], borderColor:'#00c8ff',
-      backgroundColor:'rgba(0,200,255,0.07)', borderWidth:2, fill:true, tension:0.4, pointRadius:3, pointBackgroundColor:'#00c8ff' }] },
+    data:{ labels:[], datasets:[{
+      label:'Smoke Value', data:[], borderColor:'#00c8ff',
+      backgroundColor:'rgba(0,200,255,0.07)', borderWidth:2, fill:true, tension:0.4,
+      pointRadius:3, pointBackgroundColor:'#00c8ff'
+    },{
+      label:'Threshold', data:[], borderColor:'rgba(255,51,85,0.6)',
+      borderDash:[6,4], borderWidth:1.5, fill:false, pointRadius:0
+    }]},
     options:{ responsive:true, maintainAspectRatio:false,
-      plugins:{ legend:{display:false}, tooltip:{mode:'index',intersect:false} },
+      plugins:{ legend:{display:true}, tooltip:{mode:'index',intersect:false} },
       scales:{ x:{grid:{color:'rgba(0,200,255,0.05)'},ticks:{maxTicksLimit:10}},
                y:{grid:{color:'rgba(0,200,255,0.05)'},min:0,max:1023,title:{display:true,text:'ADC Value'}} },
       animation:{duration:300} }
   });
+
   charts.donut = new Chart(document.getElementById('chart-donut'), {
     type:'doughnut',
     data:{ labels:['Good Smoke (Safe)','Bad Smoke (Hazardous)'],
       datasets:[{ data:[0,0], backgroundColor:['rgba(0,255,136,0.7)','rgba(255,51,85,0.7)'],
-        borderColor:['rgba(0,255,136,0.3)','rgba(255,51,85,0.3)'], borderWidth:1 }] },
+        borderColor:['rgba(0,255,136,0.3)','rgba(255,51,85,0.3)'], borderWidth:1 }]},
     options:{ responsive:true, maintainAspectRatio:false,
-      plugins:{ legend:{position:'bottom',labels:{boxWidth:12,padding:14}} }, cutout:'65%', animation:{duration:400} }
+      plugins:{ legend:{position:'bottom',labels:{boxWidth:12,padding:14}} }, cutout:'65%' }
   });
+
   charts.liveBig = new Chart(document.getElementById('chart-live-big'), {
     type:'line',
     data:{ labels:[], datasets:[
@@ -1114,16 +1134,18 @@ function initCharts() {
       scales:{ x:{grid:{color:'rgba(0,200,255,0.05)'}}, y:{min:0,max:1023,grid:{color:'rgba(0,200,255,0.05)'}} },
       animation:{duration:200} }
   });
+
   charts.daily = new Chart(document.getElementById('chart-daily'), {
     type:'bar',
     data:{ labels:getLast7Days(), datasets:[
-      { label:'Safe',       data:Array(7).fill(0), backgroundColor:'rgba(0,255,136,0.5)', borderColor:'rgba(0,255,136,0.8)', borderWidth:1 },
-      { label:'Hazardous',  data:Array(7).fill(0), backgroundColor:'rgba(255,51,85,0.5)',  borderColor:'rgba(255,51,85,0.8)',  borderWidth:1 }
+      { label:'Safe',      data:Array(7).fill(0), backgroundColor:'rgba(0,255,136,0.5)', borderColor:'rgba(0,255,136,0.8)', borderWidth:1 },
+      { label:'Hazardous', data:Array(7).fill(0), backgroundColor:'rgba(255,51,85,0.5)',  borderColor:'rgba(255,51,85,0.8)',  borderWidth:1 }
     ]},
     options:{ responsive:true, maintainAspectRatio:false,
       plugins:{legend:{position:'top'}},
       scales:{ x:{grid:{color:'rgba(0,200,255,0.05)'}}, y:{grid:{color:'rgba(0,200,255,0.05)'},beginAtZero:true} } }
   });
+
   charts.weekly = new Chart(document.getElementById('chart-weekly'), {
     type:'bar',
     data:{ labels:['4 weeks ago','3 weeks ago','2 weeks ago','Last week'], datasets:[
@@ -1133,6 +1155,7 @@ function initCharts() {
     options:{ responsive:true, maintainAspectRatio:false,
       scales:{ x:{grid:{color:'rgba(0,200,255,0.05)'}}, y:{grid:{color:'rgba(0,200,255,0.05)'},beginAtZero:true} } }
   });
+
   const monthNames=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   charts.monthly = new Chart(document.getElementById('chart-monthly'), {
     type:'line',
@@ -1143,6 +1166,7 @@ function initCharts() {
     options:{ responsive:true, maintainAspectRatio:false,
       scales:{ x:{grid:{color:'rgba(0,200,255,0.05)'}}, y:{grid:{color:'rgba(0,200,255,0.05)'},beginAtZero:true} } }
   });
+
   charts.hazard = new Chart(document.getElementById('chart-hazard'), {
     type:'bar',
     data:{ labels:getLast7Days(), datasets:[{ label:'Hazard Events', data:Array(7).fill(0),
@@ -1163,12 +1187,15 @@ function pushRealtimeChart(val) {
   if (val === null || val === undefined) return;
   const now = new Date();
   const label = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
-  [charts.realtime, charts.liveBig].forEach((c,i) => {
+  [charts.realtime, charts.liveBig].forEach(c => {
     if (!c) return;
     c.data.labels.push(label);
     c.data.datasets[0].data.push(val);
-    if (i===1 && c.data.datasets[1]) c.data.datasets[1].data.push(SMOKE_THRESHOLD);
-    if (c.data.labels.length > MAX_REALTIME_POINTS) { c.data.labels.shift(); c.data.datasets.forEach(ds=>ds.data.shift()); }
+    if (c.data.datasets[1]) c.data.datasets[1].data.push(SMOKE_THRESHOLD);
+    if (c.data.labels.length > MAX_REALTIME_POINTS) {
+      c.data.labels.shift();
+      c.data.datasets.forEach(ds => ds.data.shift());
+    }
     c.update('none');
   });
 }
@@ -1195,8 +1222,13 @@ function rebuildAnalyticsCharts(logs) {
       }
     }
   });
-  charts.daily.data.labels=labels; charts.daily.data.datasets[0].data=safeCounts; charts.daily.data.datasets[1].data=hazCounts; charts.daily.update();
-  charts.hazard.data.labels=labels; charts.hazard.data.datasets[0].data=hazCounts; charts.hazard.update();
+  charts.daily.data.labels=labels;
+  charts.daily.data.datasets[0].data=safeCounts;
+  charts.daily.data.datasets[1].data=hazCounts;
+  charts.daily.update();
+  charts.hazard.data.labels=labels;
+  charts.hazard.data.datasets[0].data=hazCounts;
+  charts.hazard.update();
 }
 
 function switchChartView(view, el) {
@@ -1206,83 +1238,152 @@ function switchChartView(view, el) {
 
 // ── REALTIME SUBSCRIPTION ─────────────────────────────────────
 function startRealtimeSubscription() {
-  if (!sb) { toast('Supabase not configured — demo mode active', 'warning'); setHeaderDot('hdr-supabase-dot','error'); startDemoMode(); return; }
-  setHeaderDot('hdr-supabase-dot','online');
-  toast('Connected to Supabase Realtime','success');
+  if (!sb) {
+    toast('Supabase not configured — check credentials', 'error');
+    setHeaderDot('hdr-supabase-dot','error');
+    document.getElementById('conn-status-bar').classList.add('visible');
+    return;
+  }
+
+  // Test connection first
+  sb.from('smoke_logs').select('id').limit(1).then(({error}) => {
+    if (error) {
+      console.error('Supabase connection test failed:', error);
+      setHeaderDot('hdr-supabase-dot','error');
+      document.getElementById('conn-status-bar').classList.add('visible');
+      toast('Supabase connection failed: ' + error.message, 'error', 8000);
+    } else {
+      setHeaderDot('hdr-supabase-dot','online');
+      document.getElementById('conn-status-bar').classList.remove('visible');
+      toast('Connected to Supabase', 'success');
+    }
+  });
+
+  // ✅ KEY FIX: subscribe to ALL inserts (active + completed)
   sb.channel('smoke-logs-rt')
-    .on('postgres_changes',{event:'INSERT',schema:'public',table:'smoke_logs'},payload=>handleNewLog(payload.new))
-    .subscribe();
+    .on('postgres_changes', {event:'INSERT', schema:'public', table:'smoke_logs'}, payload => {
+      console.log('[RT] New log row:', payload.new);
+      handleNewLog(payload.new);
+    })
+    .subscribe((status) => {
+      console.log('[RT] smoke_logs channel status:', status);
+      if (status === 'SUBSCRIBED') {
+        toast('Realtime connected — listening for sensor data', 'info', 3000);
+      }
+    });
+
   sb.channel('sensor-status-rt')
-    .on('postgres_changes',{event:'UPDATE',schema:'public',table:'sensor_status'},payload=>handleSensorStatus(payload.new))
+    .on('postgres_changes', {event:'UPDATE', schema:'public', table:'sensor_status'}, payload => {
+      console.log('[RT] Sensor status update:', payload.new);
+      handleSensorStatus(payload.new);
+    })
     .subscribe();
 }
 
+// ── ✅ FIXED: handle both "active" and "completed" rows ───────
 function handleNewLog(row) {
-  state.allLogs.unshift(row);
-  if (row.session_status !== 'completed' || state.testing) updateDashboard(row);
-  if (row.status === 'Hazardous') toast(`⚠️ HAZARD: ${row.test_id} — Value: ${row.smoke_value}`, 'error', 6000);
-  refreshLogTable(); updateTodayCounts(); updateDonutChart(); rebuildAnalyticsCharts(state.allLogs);
-  document.getElementById('log-badge').textContent = state.allLogs.length;
+  // Prepend — avoid duplicates by checking id
+  if (!state.allLogs.find(r => r.id === row.id)) {
+    state.allLogs.unshift(row);
+  }
+
+  // Update dashboard for any incoming row (active or completed)
+  updateDashboard(row);
+
+  if (row.status === 'Hazardous') {
+    toast(`⚠️ HAZARD: ${row.test_id} — Value: ${row.smoke_value}`, 'error', 6000);
+  }
+
+  refreshLogTable();
+  updateTodayCounts();
+  updateDonutChart();
+  rebuildAnalyticsCharts(state.allLogs);
+
+  const lb = document.getElementById('log-badge');
+  if (lb) lb.textContent = state.allLogs.length;
 }
 
 function handleSensorStatus(data) {
-  // Sync warmup banner with ESP32's actual countdown
-  if (typeof data.warmup_remaining === 'number') syncWarmupFromESP32(data.warmup_remaining);
+  if (typeof data.warmup_remaining === 'number') {
+    syncWarmupFromESP32(data.warmup_remaining);
+  }
 
-  state.esp32Online = data.is_online; state.esp32Data = data;
+  state.esp32Online = data.is_online;
+  state.esp32Data   = data;
+
   setHeaderDot('hdr-esp32-dot', data.is_online ? 'online' : 'error');
-  document.getElementById('card-esp32').textContent     = data.is_online ? 'ONLINE' : 'OFFLINE';
-  document.getElementById('card-esp32').className      = `metric-value ${data.is_online?'text-green':'text-red'}`;
-  document.getElementById('card-esp32-rssi').textContent= data.rssi ? `RSSI: ${data.rssi} dBm` : 'No signal';
-  document.getElementById('ss-online').textContent     = data.is_online ? 'ONLINE' : 'OFFLINE';
-  document.getElementById('ss-init').textContent       = data.is_initialized ? 'YES' : 'NO';
-  document.getElementById('ss-rssi').textContent       = data.rssi ?? '—';
-  document.getElementById('ss-ip').textContent         = data.ip_address ?? '—';
-  document.getElementById('ss-fw').textContent         = data.firmware_ver ?? '—';
+
+  const esp32Val = document.getElementById('card-esp32');
+  if (esp32Val) {
+    esp32Val.textContent = data.is_online ? 'ONLINE' : 'OFFLINE';
+    esp32Val.className   = `metric-value ${data.is_online?'text-green':'text-red'}`;
+  }
+  const rssiEl = document.getElementById('card-esp32-rssi');
+  if (rssiEl) rssiEl.textContent = data.rssi ? `RSSI: ${data.rssi} dBm` : 'No signal';
+
+  // Sensor status page
+  const set = (id, val) => { const el=document.getElementById(id); if(el) el.textContent=val; };
+  set('ss-online',  data.is_online ? 'ONLINE' : 'OFFLINE');
+  set('ss-init',    data.is_initialized ? 'YES' : 'NO');
+  set('ss-rssi',    data.rssi ?? '—');
+  set('ss-ip',      data.ip_address ?? '—');
+  set('ss-fw',      data.firmware_ver ?? '—');
+
   const rem = data.warmup_remaining;
-  document.getElementById('ss-warmup').textContent     = rem > 0
+  set('ss-warmup', rem > 0
     ? `${String(Math.floor(rem/60)).padStart(2,'0')}:${String(rem%60).padStart(2,'0')}`
-    : data.is_initialized ? 'READY' : '—';
+    : data.is_initialized ? 'READY' : '—');
+
   if (data.last_seen) {
     const t = new Date(data.last_seen);
-    document.getElementById('ss-lastseen').textContent = `${t.toLocaleDateString()} ${t.toLocaleTimeString()}`;
+    set('ss-lastseen', `${t.toLocaleDateString()} ${t.toLocaleTimeString()}`);
   }
-}
 
-// ── DEMO MODE ─────────────────────────────────────────────────
-function startDemoMode() {
-  setInterval(() => {
-    if (!state.testing) return;
-    const val   = Math.floor(Math.random()*700)+50;
-    const isHaz = val > SMOKE_THRESHOLD;
-    handleNewLog({id:crypto.randomUUID(),test_id:state.sessionId||'DEMO-001',smoke_value:val,
-      classification:isHaz?'Bad Smoke':'Good Smoke',status:isHaz?'Hazardous':'Safe',
-      green_led:!isHaz,red_led:isHaz,buzzer:isHaz,session_status:'active',created_at:new Date().toISOString()});
-  }, 1500);
+  // If ESP32 reports ready, unlock start button
+  if (data.is_initialized && !warmupDone) completeWarmup();
 }
 
 // ── LOAD INITIAL DATA ─────────────────────────────────────────
 async function loadInitialData() {
   if (!sb) return;
   try {
-    const { data, error } = await sb.from('smoke_logs').select('*').order('created_at',{ascending:false}).limit(500);
+    const { data, error } = await sb
+      .from('smoke_logs')
+      .select('*')
+      .order('created_at', {ascending:false})
+      .limit(500);
     if (error) throw error;
     state.allLogs = data || [];
-    refreshLogTable(); updateTodayCounts(); updateDonutChart(); rebuildAnalyticsCharts(state.allLogs);
-    document.getElementById('log-badge').textContent = state.allLogs.length;
-    const { data: sData } = await sb.from('sensor_status').select('*').single();
-    if (sData) handleSensorStatus(sData);
-  } catch(e) { toast('Could not load data from Supabase. Check credentials.','error'); }
+    refreshLogTable();
+    updateTodayCounts();
+    updateDonutChart();
+    rebuildAnalyticsCharts(state.allLogs);
+    const lb = document.getElementById('log-badge');
+    if (lb) lb.textContent = state.allLogs.length;
+
+    // Load sensor status
+    const { data: sData, error: sErr } = await sb.from('sensor_status').select('*').single();
+    if (!sErr && sData) handleSensorStatus(sData);
+  } catch(e) {
+    console.error('loadInitialData error:', e);
+    toast('Could not load data from Supabase: ' + e.message, 'error');
+  }
 }
 
 // ── TODAY COUNTS ──────────────────────────────────────────────
 function updateTodayCounts() {
   const today = new Date().toDateString();
-  const tl = state.allLogs.filter(r => new Date(r.created_at).toDateString()===today && r.session_status==='completed');
-  state.totalToday=tl.length; state.safeToday=tl.filter(r=>r.status==='Safe').length; state.hazardToday=tl.filter(r=>r.status==='Hazardous').length;
-  document.getElementById('card-total-today').textContent  = state.totalToday;
-  document.getElementById('card-safe-today').textContent   = state.safeToday;
-  document.getElementById('card-hazard-today').textContent = state.hazardToday;
+  // Count completed sessions only for summary cards
+  const tl = state.allLogs.filter(r =>
+    new Date(r.created_at).toDateString() === today && r.session_status === 'completed'
+  );
+  state.totalToday  = tl.length;
+  state.safeToday   = tl.filter(r=>r.status==='Safe').length;
+  state.hazardToday = tl.filter(r=>r.status==='Hazardous').length;
+  const set = (id, val) => { const el=document.getElementById(id); if(el) el.textContent=val; };
+  set('card-total-today',  state.totalToday);
+  set('card-safe-today',   state.safeToday);
+  set('card-hazard-today', state.hazardToday);
 }
 
 // ── LOG TABLE ─────────────────────────────────────────────────
@@ -1293,10 +1394,14 @@ function filterLogs() {
   const status = document.getElementById('log-filter-status')?.value||'';
   const sess   = document.getElementById('log-filter-session')?.value||'';
   state.filteredLogs = state.allLogs.filter(r => {
-    const mq = !q || r.test_id?.toLowerCase().includes(q)||r.classification?.toLowerCase().includes(q)||r.status?.toLowerCase().includes(q);
+    const mq = !q ||
+      r.test_id?.toLowerCase().includes(q) ||
+      r.classification?.toLowerCase().includes(q) ||
+      r.status?.toLowerCase().includes(q);
     return mq && (!status||r.status===status) && (!sess||r.session_status===sess);
   });
-  state.page = 1; renderLogTable();
+  state.page = 1;
+  renderLogTable();
 }
 
 function sortLogs(key) {
@@ -1327,12 +1432,18 @@ function renderLogTable() {
           <td class="smoke-num" style="color:${isBad?'var(--red)':'var(--green)'}">${r.smoke_value}</td>
           <td><span class="badge ${r.classification==='Bad Smoke'?'badge-bad':'badge-good'}">${r.classification}</span></td>
           <td><span class="badge ${isBad?'badge-hazard':'badge-safe'}">${r.status}</span></td>
-          <td><span class="led-dot ${r.green_led?'g':'off'}"></span><span class="led-dot ${r.red_led?'r':'off'}" style="margin-left:4px"></span></td>
+          <td>
+            <span class="led-dot ${r.green_led?'g':'off'}"></span>
+            <span class="led-dot ${r.red_led?'r':'off'}" style="margin-left:4px"></span>
+          </td>
           <td><span class="led-dot ${r.buzzer?'r':'off'}"></span></td>
           <td><span class="badge ${r.session_status==='active'?'badge-active':'badge-completed'}">${r.session_status}</span></td>
         </tr>`;
       }).join('');
-  document.getElementById('log-pagination-info').textContent = `${total} records — page ${state.page} of ${Math.max(1,pages)}`;
+
+  document.getElementById('log-pagination-info').textContent =
+    `${total} records — page ${state.page} of ${Math.max(1,pages)}`;
+
   const btns = document.getElementById('log-pagination-btns');
   btns.innerHTML = '';
   if (pages > 1) {
@@ -1347,8 +1458,10 @@ function renderLogTable() {
       continue;
     }
     const btn=document.createElement('button');
-    btn.className=`page-btn ${i===state.page?'active':''}`; btn.textContent=i;
-    btn.onclick=()=>{state.page=i;renderLogTable();}; btns.appendChild(btn);
+    btn.className=`page-btn ${i===state.page?'active':''}`;
+    btn.textContent=i;
+    btn.onclick=()=>{state.page=i;renderLogTable();};
+    btns.appendChild(btn);
   }
   if (pages > 1) {
     const next=document.createElement('button');
@@ -1359,7 +1472,8 @@ function renderLogTable() {
 }
 
 function globalSearch(val) {
-  document.getElementById('log-search').value = val;
+  const ls = document.getElementById('log-search');
+  if (ls) ls.value = val;
   filterLogs();
   if (val && state.allLogs.some(r=>r.test_id?.toLowerCase().includes(val.toLowerCase())))
     showSection('logs', document.querySelector('[data-section=logs]'));
@@ -1369,13 +1483,18 @@ function globalSearch(val) {
 function addToQueue() {
   const input=document.getElementById('queue-input'), val=input.value.trim();
   if (!val) return;
-  state.queue.push({name:val,status:'waiting'}); input.value=''; renderQueue();
+  state.queue.push({name:val,status:'waiting'});
+  input.value='';
+  renderQueue();
   toast(`"${val}" added to queue`,'info',2000);
 }
 function clearQueue() { state.queue=[]; renderQueue(); }
 function renderQueue() {
   const el=document.getElementById('queue-list');
-  if (!state.queue.length) { el.innerHTML=`<div class="empty-state"><div class="empty-state-icon">🚫</div><p>No vehicles in queue.</p></div>`; return; }
+  if (!state.queue.length) {
+    el.innerHTML=`<div class="empty-state"><div class="empty-state-icon">🚫</div><p>No vehicles in queue.</p></div>`;
+    return;
+  }
   el.innerHTML=state.queue.map((v,i)=>`
     <div class="queue-item ${v.status==='testing'?'current':''}">
       <div class="queue-num">#${String(i+1).padStart(2,'0')}</div>
@@ -1393,10 +1512,14 @@ function exportCSV() {
   const headers = ['Test ID','Date','Time','Smoke Value','Classification','Status','Green LED','Red LED','Buzzer','Session'];
   const csv = [headers.join(','), ...rows.map(r=>{
     const d=new Date(r.created_at);
-    return [r.test_id,d.toLocaleDateString(),d.toLocaleTimeString(),r.smoke_value,r.classification,r.status,r.green_led,r.red_led,r.buzzer,r.session_status].map(v=>`"${v}"`).join(',');
+    return [r.test_id,d.toLocaleDateString(),d.toLocaleTimeString(),r.smoke_value,
+      r.classification,r.status,r.green_led,r.red_led,r.buzzer,r.session_status]
+      .map(v=>`"${v}"`).join(',');
   })].join('\n');
-  const a=document.createElement('a'); a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
-  a.download=`TROYIKZ_report_${Date.now()}.csv`; a.click();
+  const a=document.createElement('a');
+  a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+  a.download=`TROYIKZ_report_${Date.now()}.csv`;
+  a.click();
   toast('CSV exported!','success');
 }
 
@@ -1404,19 +1527,28 @@ function generatePDF() {
   if (typeof window.jspdf==='undefined') { toast('jsPDF not loaded','error'); return; }
   const {jsPDF}=window.jspdf, doc=new jsPDF();
   doc.setFillColor(5,13,26); doc.rect(0,0,210,35,'F');
-  doc.setTextColor(0,200,255); doc.setFont('helvetica','bold'); doc.setFontSize(20); doc.text('TROYIKZ',14,16);
-  doc.setFontSize(9); doc.setTextColor(122,184,212); doc.text('Smart Smoke Detection & Hazard Classification System',14,23);
+  doc.setTextColor(0,200,255); doc.setFont('helvetica','bold');
+  doc.setFontSize(20); doc.text('TROYIKZ',14,16);
+  doc.setFontSize(9); doc.setTextColor(122,184,212);
+  doc.text('Smart Smoke Detection & Hazard Classification System',14,23);
   doc.setFontSize(8); doc.text(`Generated: ${new Date().toLocaleString()}`,14,30);
-  doc.setTextColor(40,40,40); doc.setFontSize(11); doc.setFont('helvetica','bold'); doc.text('Summary Statistics',14,48);
+  doc.setTextColor(40,40,40); doc.setFontSize(11); doc.setFont('helvetica','bold');
+  doc.text('Summary Statistics',14,48);
   doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(80);
   doc.text(`Total Tests: ${state.allLogs.length}`,14,56);
   doc.text(`Safe: ${state.allLogs.filter(r=>r.status==='Safe').length}`,60,56);
   doc.text(`Hazardous: ${state.allLogs.filter(r=>r.status==='Hazardous').length}`,100,56);
   const rows=getFilteredExportData().slice(0,200);
   doc.autoTable({startY:64,
-    head:[['Test ID','Date','Time','Smoke','Classification','Status','G-LED','R-LED','Buzzer']],
-    body:rows.map(r=>{const d=new Date(r.created_at);return[r.test_id,d.toLocaleDateString(),d.toLocaleTimeString(),r.smoke_value,r.classification,r.status,r.green_led?'ON':'OFF',r.red_led?'ON':'OFF',r.buzzer?'ON':'OFF'];}),
-    styles:{fontSize:7,cellPadding:2},headStyles:{fillColor:[5,13,26],textColor:[0,200,255]},alternateRowStyles:{fillColor:[245,248,255]}
+    head:[['Test ID','Date','Time','Smoke','Classification','Status','G-LED','R-LED','Buzzer','Session']],
+    body:rows.map(r=>{
+      const d=new Date(r.created_at);
+      return[r.test_id,d.toLocaleDateString(),d.toLocaleTimeString(),r.smoke_value,
+        r.classification,r.status,r.green_led?'ON':'OFF',r.red_led?'ON':'OFF',r.buzzer?'ON':'OFF',r.session_status];
+    }),
+    styles:{fontSize:7,cellPadding:2},
+    headStyles:{fillColor:[5,13,26],textColor:[0,200,255]},
+    alternateRowStyles:{fillColor:[245,248,255]}
   });
   doc.save(`TROYIKZ_report_${Date.now()}.pdf`);
   toast('PDF report downloaded!','success');
@@ -1427,9 +1559,13 @@ function getFilteredExportData() {
   return state.allLogs.filter(r=>{
     const d=new Date(r.created_at);
     if(period==='today')  return d.toDateString()===now.toDateString();
-    if(period==='week')   {const w=new Date(now);w.setDate(now.getDate()-7);return d>=w;}
-    if(period==='month')  {const m=new Date(now);m.setMonth(now.getMonth()-1);return d>=m;}
-    if(period==='custom') {const from=document.getElementById('report-from')?.value,to=document.getElementById('report-to')?.value;if(from)return d>=new Date(from)&&(!to||d<=new Date(to+'T23:59:59'));}
+    if(period==='week')   { const w=new Date(now); w.setDate(now.getDate()-7); return d>=w; }
+    if(period==='month')  { const m=new Date(now); m.setMonth(now.getMonth()-1); return d>=m; }
+    if(period==='custom') {
+      const from=document.getElementById('report-from')?.value;
+      const to=document.getElementById('report-to')?.value;
+      if(from) return d>=new Date(from)&&(!to||d<=new Date(to+'T23:59:59'));
+    }
     return true;
   });
 }
@@ -1453,12 +1589,11 @@ function toggleTheme() {
 }
 function openThemeModal()  { document.getElementById('theme-modal').classList.add('open'); }
 function closeThemeModal() { document.getElementById('theme-modal').classList.remove('open'); }
-document.body.dataset.theme = localStorage.getItem('troyikz_theme') || 'dark';
 
 // ── INIT ──────────────────────────────────────────────────────
+document.body.dataset.theme = localStorage.getItem('troyikz_theme') || 'dark';
 window.onclick = e => { if (e.target===document.getElementById('theme-modal')) closeThemeModal(); };
 
-// Start everything immediately — warmup only blocks "Start Testing"
 startWarmupBanner();
 initCharts();
 startRealtimeSubscription();
