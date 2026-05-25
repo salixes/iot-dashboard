@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Smart Smoke Detection System</title>
+<title>TROYIKZ — Smart Smoke Detection</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Exo+2:wght@300;400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -11,769 +11,657 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.6.0/jspdf.plugin.autotable.min.js"></script>
 <style>
-:root {
-  --bg-primary:    #050d1a;
-  --bg-secondary:  #071428;
-  --bg-card:       rgba(8,24,48,0.75);
-  --bg-glass:      rgba(0,200,255,0.04);
-  --border:        rgba(0,200,255,0.12);
-  --border-bright: rgba(0,200,255,0.35);
-  --cyan:          #00c8ff;
-  --cyan-dim:      #0090b8;
-  --cyan-glow:     rgba(0,200,255,0.25);
-  --green:         #00ff88;
-  --green-dim:     #007a44;
-  --green-glow:    rgba(0,255,136,0.25);
-  --red:           #ff3355;
-  --red-dim:       #881122;
-  --red-glow:      rgba(255,51,85,0.3);
-  --yellow:        #ffcc00;
-  --yellow-glow:   rgba(255,204,0,0.25);
-  --text-primary:  #e8f4ff;
-  --text-secondary:#7ab8d4;
-  --text-muted:    #3a6480;
-  --sidebar-w:     240px;
-  --header-h:      64px;
-  --radius:        14px;
-  --radius-sm:     8px;
-  --transition:    0.25s cubic-bezier(.4,0,.2,1);
-  --font-display:  'Orbitron', monospace;
-  --font-body:     'Exo 2', sans-serif;
-  --font-mono:     'JetBrains Mono', monospace;
+:root{
+  --bg:#050d1a;--bg2:#071428;--card:rgba(8,24,48,0.78);--glass:rgba(0,200,255,0.04);
+  --b:rgba(0,200,255,0.12);--bb:rgba(0,200,255,0.35);
+  --cyan:#00c8ff;--cdim:#0090b8;--cglow:rgba(0,200,255,0.25);
+  --green:#00ff88;--gdim:#007a44;--gglow:rgba(0,255,136,0.25);
+  --red:#ff3355;--rdim:#881122;--rglow:rgba(255,51,85,0.3);
+  --yellow:#ffcc00;--ydim:#886600;--yglow:rgba(255,204,0,0.3);
+  --tp:#e8f4ff;--ts:#7ab8d4;--tm:#3a6480;
+  --sw:240px;--hh:64px;--r:14px;--rs:8px;
+  --tr:0.25s cubic-bezier(.4,0,.2,1);
+  --fd:'Orbitron',monospace;--fb:'Exo 2',sans-serif;--fm:'JetBrains Mono',monospace;
 }
-[data-theme="light"] {
-  --bg-primary:#e8f0f8;--bg-secondary:#d0dff0;--bg-card:rgba(255,255,255,0.8);
-  --bg-glass:rgba(0,100,200,0.06);--border:rgba(0,100,200,0.15);--border-bright:rgba(0,100,200,0.4);
-  --cyan:#0070cc;--cyan-dim:#004a88;--text-primary:#0a1525;--text-secondary:#2a4a70;--text-muted:#6090bb;
-}
-[data-theme="cyber-blue"] {
-  --bg-primary:#000814;--bg-secondary:#000d1a;--bg-card:rgba(0,8,20,0.85);--cyan:#00ffff;--text-primary:#ccffff;
-}
-[data-theme="emerald"] {
-  --bg-primary:#021a0e;--bg-secondary:#031f10;--bg-card:rgba(2,26,14,0.8);
-  --cyan:#00ff88;--cyan-glow:rgba(0,255,136,0.25);--text-primary:#ccffee;
-}
-[data-theme="neon-purple"] {
-  --bg-primary:#0d0014;--bg-secondary:#110019;--bg-card:rgba(13,0,20,0.8);
-  --cyan:#cc44ff;--cyan-glow:rgba(204,68,255,0.25);--text-primary:#f0ccff;
-}
-[data-theme="midnight"] {
-  --bg-primary:#080810;--bg-secondary:#0c0c18;--bg-card:rgba(8,8,20,0.85);
-  --cyan:#8888ff;--cyan-glow:rgba(136,136,255,0.25);--text-primary:#ddddff;
-}
-
+[data-theme=light]{--bg:#e8f0f8;--bg2:#d0dff0;--card:rgba(255,255,255,.85);--glass:rgba(0,100,200,.06);--b:rgba(0,100,200,.15);--bb:rgba(0,100,200,.4);--cyan:#0070cc;--cdim:#004a88;--tp:#0a1525;--ts:#2a4a70;--tm:#6090bb;}
+[data-theme=cyber-blue]{--bg:#000814;--bg2:#000d1a;--card:rgba(0,8,20,.88);--cyan:#00ffff;--tp:#ccffff;}
+[data-theme=emerald]{--bg:#021a0e;--bg2:#031f10;--card:rgba(2,26,14,.82);--cyan:#00ff88;--cglow:rgba(0,255,136,.25);--tp:#ccffee;}
+[data-theme=neon-purple]{--bg:#0d0014;--bg2:#110019;--card:rgba(13,0,20,.82);--cyan:#cc44ff;--cglow:rgba(204,68,255,.25);--tp:#f0ccff;}
+[data-theme=midnight]{--bg:#080810;--bg2:#0c0c18;--card:rgba(8,8,20,.88);--cyan:#8888ff;--cglow:rgba(136,136,255,.25);--tp:#ddddff;}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 html{font-size:14px;scroll-behavior:smooth;}
-body{font-family:var(--font-body);background:var(--bg-primary);color:var(--text-primary);
-  min-height:100vh;overflow-x:hidden;transition:background var(--transition),color var(--transition);}
-body::before{content:'';position:fixed;inset:0;
-  background-image:linear-gradient(rgba(0,200,255,0.03) 1px,transparent 1px),
-  linear-gradient(90deg,rgba(0,200,255,0.03) 1px,transparent 1px);
-  background-size:40px 40px;pointer-events:none;z-index:0;}
+body{font-family:var(--fb);background:var(--bg);color:var(--tp);min-height:100vh;overflow-x:hidden;transition:background var(--tr),color var(--tr);}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,200,255,0.03)1px,transparent 1px),linear-gradient(90deg,rgba(0,200,255,0.03)1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0;}
 
-/* ── WARMUP BANNER ── */
-#warmup-banner {
-  display: none;
-  position: sticky;
-  top: var(--header-h);
-  z-index: 85;
-  background: linear-gradient(90deg, rgba(5,13,26,0.97), rgba(7,20,40,0.97));
-  border-bottom: 1px solid rgba(255,204,0,0.35);
-  backdrop-filter: blur(16px);
-  padding: 10px 24px;
-  align-items: center;
-  gap: 16px;
-  flex-wrap: wrap;
-}
-#warmup-banner.visible { display: flex; }
-.wb-icon  { font-size: 20px; animation: wb-spin 4s linear infinite; flex-shrink: 0; }
-@keyframes wb-spin { to { transform: rotate(360deg); } }
-.wb-label { font-family: var(--font-display); font-size: 11px; font-weight: 700;
-            color: var(--yellow); letter-spacing: 2px; white-space: nowrap; }
-.wb-timer { font-family: var(--font-display); font-size: 20px; font-weight: 900;
-            color: var(--yellow); letter-spacing: 3px; min-width: 58px;
-            text-shadow: 0 0 14px var(--yellow-glow); }
-.wb-track { flex: 1; min-width: 100px; max-width: 300px; height: 5px;
-            background: rgba(255,255,255,0.06); border-radius: 10px; overflow: hidden; }
-.wb-fill  { height: 100%; border-radius: 10px; width: 0%;
-            background: linear-gradient(90deg, var(--cyan-dim), var(--yellow));
-            box-shadow: 0 0 10px var(--yellow-glow); transition: width 3s linear; }
-.wb-steps { display: flex; gap: 12px; flex-wrap: wrap; }
-.wb-step  { font-size: 10px; color: var(--text-muted); display: flex; align-items: center; gap: 4px; }
-.wb-step.done   { color: var(--green); }
-.wb-step.active { color: var(--yellow); }
-.wb-dismiss { margin-left: auto; font-size: 10px; color: var(--text-muted); cursor: pointer;
-              padding: 4px 10px; border-radius: 4px; border: 1px solid var(--border);
-              background: transparent; font-family: var(--font-body); transition: all var(--transition); }
-.wb-dismiss:hover { border-color: var(--border-bright); color: var(--text-primary); }
+/* WARMUP BANNER */
+#wb{display:none;position:sticky;top:var(--hh);z-index:85;background:linear-gradient(90deg,rgba(5,13,26,.97),rgba(7,20,40,.97));border-bottom:1px solid rgba(255,204,0,.35);backdrop-filter:blur(16px);padding:10px 24px;align-items:center;gap:16px;flex-wrap:wrap;}
+#wb.on{display:flex;}
+.wb-icon{font-size:20px;animation:spin 4s linear infinite;flex-shrink:0;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.wb-lbl{font-family:var(--fd);font-size:11px;font-weight:700;color:var(--yellow);letter-spacing:2px;white-space:nowrap;}
+.wb-time{font-family:var(--fd);font-size:20px;font-weight:900;color:var(--yellow);letter-spacing:3px;min-width:58px;text-shadow:0 0 14px var(--yglow);}
+.wb-track{flex:1;min-width:100px;max-width:300px;height:5px;background:rgba(255,255,255,.06);border-radius:10px;overflow:hidden;}
+.wb-fill{height:100%;border-radius:10px;width:0%;background:linear-gradient(90deg,var(--cdim),var(--yellow));box-shadow:0 0 10px var(--yglow);transition:width 1s linear;}
+.wb-steps{display:flex;gap:14px;flex-wrap:wrap;}
+.wb-step{font-size:10px;color:var(--tm);display:flex;align-items:center;gap:4px;}
+.wb-step.done{color:var(--green);}.wb-step.active{color:var(--yellow);animation:pdot 1s infinite;}
+.wb-dis{margin-left:auto;font-size:10px;color:var(--tm);cursor:pointer;padding:4px 10px;border-radius:4px;border:1px solid var(--b);background:transparent;font-family:var(--fb);transition:all var(--tr);}
+.wb-dis:hover{border-color:var(--bb);color:var(--tp);}
 
-/* ── LAYOUT ── */
-.app-shell{display:flex;min-height:100vh;position:relative;z-index:1;}
+/* CONNECTION BAR */
+#conn-bar{display:none;position:sticky;top:var(--hh);z-index:84;background:rgba(255,51,85,.12);border-bottom:1px solid var(--rdim);padding:8px 24px;font-size:12px;color:var(--red);text-align:center;font-family:var(--fm);letter-spacing:1px;}
+#conn-bar.on{display:block;}
 
-/* ── SIDEBAR ── */
-.sidebar{width:var(--sidebar-w);background:rgba(5,13,26,0.95);border-right:1px solid var(--border);
-  display:flex;flex-direction:column;position:fixed;left:0;top:0;bottom:0;z-index:100;
-  transition:transform var(--transition),width var(--transition);backdrop-filter:blur(20px);}
-.sidebar-logo{padding:24px 20px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;}
-.logo-icon{width:40px;height:40px;background:linear-gradient(135deg,var(--cyan),var(--cyan-dim));
-  border-radius:10px;display:flex;align-items:center;justify-content:center;font-family:var(--font-display);
-  font-weight:900;font-size:16px;color:#fff;box-shadow:0 0 20px var(--cyan-glow);flex-shrink:0;}
-.logo-text{font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--cyan);letter-spacing:2px;line-height:1.2;}
-.logo-sub{font-size:9px;color:var(--text-muted);letter-spacing:1px;text-transform:uppercase;}
-.sidebar-nav{flex:1;padding:16px 12px;overflow-y:auto;}
-.nav-section-label{font-size:9px;font-weight:600;color:var(--text-muted);letter-spacing:2px;
-  text-transform:uppercase;padding:16px 8px 6px;}
-.nav-item{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:var(--radius-sm);
-  cursor:pointer;transition:all var(--transition);color:var(--text-secondary);font-size:13px;
-  font-weight:500;margin-bottom:2px;position:relative;text-decoration:none;}
-.nav-item:hover{background:var(--bg-glass);color:var(--text-primary);transform:translateX(4px);}
-.nav-item.active{background:linear-gradient(90deg,rgba(0,200,255,0.15),transparent);
-  color:var(--cyan);border-left:2px solid var(--cyan);padding-left:10px;}
-.nav-item.active::before{content:'';position:absolute;right:0;top:50%;transform:translateY(-50%);
-  width:3px;height:60%;background:var(--cyan);border-radius:4px;box-shadow:0 0 8px var(--cyan-glow);}
-.nav-icon{width:18px;height:18px;opacity:0.7;flex-shrink:0;}
-.nav-item.active .nav-icon{opacity:1;}
-.nav-badge{margin-left:auto;background:var(--red);color:#fff;font-size:9px;font-weight:700;
-  padding:2px 6px;border-radius:20px;min-width:18px;text-align:center;}
-.sidebar-footer{padding:16px 12px;border-top:1px solid var(--border);}
-.sensor-mini-status{display:flex;align-items:center;gap:8px;padding:10px 12px;
-  background:var(--bg-glass);border:1px solid var(--border);border-radius:var(--radius-sm);
-  font-size:11px;color:var(--text-secondary);}
-.status-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;background:var(--text-muted);
-  transition:background var(--transition),box-shadow var(--transition);}
-.status-dot.online{background:var(--green);box-shadow:0 0 8px var(--green-glow);animation:pulse-dot 2s infinite;}
-.status-dot.warning{background:var(--yellow);box-shadow:0 0 8px var(--yellow-glow);animation:pulse-dot 1s infinite;}
-.status-dot.error{background:var(--red);box-shadow:0 0 8px var(--red-glow);animation:pulse-dot 0.5s infinite;}
-@keyframes pulse-dot{0%,100%{opacity:1;}50%{opacity:.4;}}
+/* LAYOUT */
+.shell{display:flex;min-height:100vh;position:relative;z-index:1;}
 
-/* ── HEADER ── */
-.main-content{margin-left:var(--sidebar-w);flex:1;display:flex;flex-direction:column;min-height:100vh;}
-.header{height:var(--header-h);background:rgba(5,13,26,0.9);border-bottom:1px solid var(--border);
-  backdrop-filter:blur(20px);display:flex;align-items:center;padding:0 24px;gap:16px;
-  position:sticky;top:0;z-index:90;}
-.header-search{flex:1;max-width:300px;position:relative;}
-.header-search input{width:100%;background:var(--bg-glass);border:1px solid var(--border);
-  border-radius:20px;padding:8px 16px 8px 36px;color:var(--text-primary);font-family:var(--font-body);
-  font-size:12px;outline:none;transition:border-color var(--transition);}
-.header-search input:focus{border-color:var(--border-bright);}
-.header-search input::placeholder{color:var(--text-muted);}
-.search-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--text-muted);font-size:13px;}
-.header-right{display:flex;align-items:center;gap:14px;margin-left:auto;}
-.header-datetime{text-align:right;font-family:var(--font-mono);}
-.header-date{font-size:10px;color:var(--text-muted);}
-.header-time{font-size:15px;font-weight:600;color:var(--cyan);letter-spacing:1px;}
-.header-status-pill{display:flex;align-items:center;gap:6px;padding:6px 12px;background:var(--bg-glass);
-  border:1px solid var(--border);border-radius:20px;font-size:11px;color:var(--text-secondary);font-family:var(--font-mono);}
-.header-icon-btn{width:36px;height:36px;border-radius:50%;background:var(--bg-glass);border:1px solid var(--border);
-  display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-secondary);
-  font-size:16px;transition:all var(--transition);position:relative;}
-.header-icon-btn:hover{border-color:var(--border-bright);color:var(--cyan);}
-.notif-badge{position:absolute;top:-3px;right:-3px;width:16px;height:16px;background:var(--red);
-  border-radius:50%;font-size:9px;font-weight:700;color:#fff;display:flex;align-items:center;justify-content:center;}
+/* SIDEBAR */
+.sidebar{width:var(--sw);background:var(--bg2);border-right:1px solid var(--b);display:flex;flex-direction:column;position:fixed;left:0;top:0;bottom:0;z-index:100;backdrop-filter:blur(20px);transition:transform var(--tr),background var(--tr);}
+.logo-wrap{padding:22px 20px 16px;border-bottom:1px solid var(--b);display:flex;align-items:center;gap:12px;}
+.logo-ic{width:40px;height:40px;background:linear-gradient(135deg,var(--cyan),var(--cdim));border-radius:10px;display:flex;align-items:center;justify-content:center;font-family:var(--fd);font-weight:900;font-size:16px;color:#fff;box-shadow:0 0 20px var(--cglow);flex-shrink:0;}
+.logo-tx{font-family:var(--fd);font-size:15px;font-weight:700;color:var(--cyan);letter-spacing:2px;}
+.logo-sub{font-size:9px;color:var(--tm);letter-spacing:1px;text-transform:uppercase;}
+.nav{flex:1;padding:14px 12px;overflow-y:auto;}
+.nav-sec{font-size:9px;font-weight:600;color:var(--tm);letter-spacing:2px;text-transform:uppercase;padding:14px 8px 6px;}
+.nav-item{display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:var(--rs);cursor:pointer;transition:all var(--tr);color:var(--ts);font-size:13px;font-weight:500;margin-bottom:2px;text-decoration:none;}
+.nav-item:hover{background:var(--glass);color:var(--tp);transform:translateX(4px);}
+.nav-item.active{background:linear-gradient(90deg,rgba(0,200,255,.15),transparent);color:var(--cyan);border-left:2px solid var(--cyan);padding-left:10px;}
+.nav-ic{width:18px;height:18px;opacity:.7;flex-shrink:0;}.nav-item.active .nav-ic{opacity:1;}
+.nav-bdg{margin-left:auto;background:var(--red);color:#fff;font-size:9px;font-weight:700;padding:2px 6px;border-radius:20px;min-width:18px;text-align:center;}
+.sb-footer{padding:14px 12px;border-top:1px solid var(--b);}
+.sb-status{display:flex;align-items:center;gap:8px;padding:10px 12px;background:var(--glass);border:1px solid var(--b);border-radius:var(--rs);font-size:11px;color:var(--ts);}
+.sdot{width:8px;height:8px;border-radius:50%;flex-shrink:0;background:var(--tm);transition:background var(--tr);}
+.sdot.online{background:var(--green);box-shadow:0 0 8px var(--gglow);animation:pdot 2s infinite;}
+.sdot.warn{background:var(--yellow);box-shadow:0 0 8px var(--yglow);animation:pdot 1s infinite;}
+.sdot.err{background:var(--red);box-shadow:0 0 8px var(--rglow);animation:pdot .5s infinite;}
+@keyframes pdot{0%,100%{opacity:1;}50%{opacity:.3;}}
 
-/* ── PAGE CONTENT ── */
-.page-content{padding:24px;flex:1;}
-.page-section{display:none;}
-.page-section.active{display:block;}
+/* HEADER */
+.main{margin-left:var(--sw);flex:1;display:flex;flex-direction:column;min-height:100vh;}
+.hdr{height:var(--hh);background:var(--bg2);border-bottom:1px solid var(--b);backdrop-filter:blur(20px);display:flex;align-items:center;padding:0 24px;gap:16px;position:sticky;top:0;z-index:90;transition:background var(--tr);}
+.hdr-search{flex:1;max-width:300px;position:relative;}
+.hdr-search input{width:100%;background:var(--glass);border:1px solid var(--b);border-radius:20px;padding:8px 16px 8px 36px;color:var(--tp);font-family:var(--fb);font-size:12px;outline:none;transition:border-color var(--tr);}
+.hdr-search input:focus{border-color:var(--bb);}
+.hdr-search input::placeholder{color:var(--tm);}
+.si{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--tm);font-size:13px;}
+.hdr-r{display:flex;align-items:center;gap:14px;margin-left:auto;}
+.hdr-dt{text-align:right;font-family:var(--fm);}
+.hdr-date{font-size:10px;color:var(--tm);}
+.hdr-time{font-size:15px;font-weight:600;color:var(--cyan);letter-spacing:1px;}
+.pill{display:flex;align-items:center;gap:6px;padding:6px 12px;background:var(--glass);border:1px solid var(--b);border-radius:20px;font-size:11px;color:var(--ts);font-family:var(--fm);}
+.ico-btn{width:36px;height:36px;border-radius:50%;background:var(--glass);border:1px solid var(--b);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--ts);font-size:16px;transition:all var(--tr);position:relative;}
+.ico-btn:hover{border-color:var(--bb);color:var(--cyan);}
+.nbdg{position:absolute;top:-3px;right:-3px;width:16px;height:16px;background:var(--red);border-radius:50%;font-size:9px;font-weight:700;color:#fff;display:flex;align-items:center;justify-content:center;}
+.tip-w{position:relative;}.tip-w:hover .tip{display:block;}
+.tip{display:none;position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);background:rgba(10,22,40,.96);border:1px solid var(--b);border-radius:4px;padding:6px 10px;font-size:11px;color:var(--tp);white-space:nowrap;z-index:999;backdrop-filter:blur(10px);}
 
-/* ── SECTION HEADERS ── */
-.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;}
-.section-title{font-family:var(--font-display);font-size:18px;font-weight:700;
-  color:var(--text-primary);letter-spacing:1px;}
-.section-sub{font-size:12px;color:var(--text-muted);margin-top:3px;}
+/* PAGE */
+.pc{padding:24px;flex:1;}
+.ps{display:none;}.ps.active{display:block;}
+.sec-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;}
+.sec-title{font-family:var(--fd);font-size:18px;font-weight:700;color:var(--tp);letter-spacing:1px;}
+.sec-sub{font-size:12px;color:var(--tm);margin-top:3px;}
 
-/* ── STATUS BANNER ── */
-.status-banner{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);
-  padding:16px 24px;display:flex;align-items:center;gap:16px;margin-bottom:20px;
-  backdrop-filter:blur(10px);transition:border-color var(--transition),box-shadow var(--transition);}
-.status-banner.safe{border-color:var(--green-dim);box-shadow:0 0 30px rgba(0,255,136,0.08);}
-.status-banner.hazardous{border-color:var(--red-dim);box-shadow:0 0 30px rgba(255,51,85,0.12);
-  animation:banner-pulse 1s ease-in-out infinite;}
-@keyframes banner-pulse{0%,100%{box-shadow:0 0 30px rgba(255,51,85,0.12);}50%{box-shadow:0 0 50px rgba(255,51,85,0.3);}}
-.banner-indicator{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;
-  justify-content:center;font-size:22px;flex-shrink:0;}
-.banner-indicator.safe{background:rgba(0,255,136,0.15);}
-.banner-indicator.hazardous{background:rgba(255,51,85,0.15);animation:rotate-warn 2s linear infinite;}
-@keyframes rotate-warn{to{transform:rotate(360deg);}}
-.banner-text h2{font-family:var(--font-display);font-size:16px;font-weight:700;letter-spacing:1px;}
-.banner-text p{font-size:12px;color:var(--text-secondary);margin-top:2px;}
-.banner-smoke-val{margin-left:auto;text-align:right;}
-.smoke-val-label{font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;}
-.smoke-val-num{font-family:var(--font-display);font-size:36px;font-weight:900;line-height:1;transition:color var(--transition);}
+/* THRESHOLD PILLS */
+.thresh-bar{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;}
+.tpill{display:flex;align-items:center;gap:6px;padding:5px 14px;border-radius:20px;font-size:11px;font-family:var(--fm);}
+.tpill.air{background:rgba(0,200,255,.08);border:1px solid rgba(0,200,255,.2);color:var(--cyan);}
+.tpill.norm{background:rgba(255,204,0,.08);border:1px solid rgba(255,204,0,.2);color:var(--yellow);}
+.tpill.haz{background:rgba(255,51,85,.08);border:1px solid rgba(255,51,85,.2);color:var(--red);}
+.tdot{width:7px;height:7px;border-radius:50%;}
+.tdot.c{background:var(--cyan);}.tdot.y{background:var(--yellow);}.tdot.r{background:var(--red);}
 
-/* ── METRIC CARDS ── */
-.cards-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:20px;}
-.metric-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);
-  padding:18px 20px;backdrop-filter:blur(10px);transition:transform var(--transition),border-color var(--transition),box-shadow var(--transition);
-  cursor:default;position:relative;overflow:hidden;}
-.metric-card::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;
-  background:linear-gradient(90deg,transparent,var(--cyan),transparent);opacity:0;transition:opacity var(--transition);}
-.metric-card:hover{transform:translateY(-3px);border-color:var(--border-bright);box-shadow:0 8px 32px rgba(0,200,255,0.08);}
-.metric-card:hover::after{opacity:1;}
-.metric-icon{font-size:22px;margin-bottom:10px;}
-.metric-label{font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:2px;margin-bottom:6px;}
-.metric-value{font-family:var(--font-display);font-size:22px;font-weight:700;color:var(--text-primary);transition:color var(--transition);}
-.metric-sub{font-size:11px;color:var(--text-muted);margin-top:4px;}
-.metric-card.safe .metric-value{color:var(--green);}
-.metric-card.hazard .metric-value{color:var(--red);}
-.metric-card.cyan .metric-value{color:var(--cyan);}
-.metric-card.yellow .metric-value{color:var(--yellow);}
+/* STATUS BANNER */
+.banner{background:var(--card);border:1px solid var(--b);border-radius:var(--r);padding:16px 24px;display:flex;align-items:center;gap:16px;margin-bottom:20px;backdrop-filter:blur(10px);transition:all .4s ease;}
+.banner.s-idle{border-color:var(--b);}
+.banner.s-air{border-color:var(--cdim);box-shadow:0 0 30px rgba(0,200,255,.1);}
+.banner.s-norm{border-color:var(--ydim);box-shadow:0 0 30px rgba(255,204,0,.15);animation:bpn 2s ease-in-out infinite;}
+.banner.s-haz{border-color:var(--rdim);box-shadow:0 0 40px rgba(255,51,85,.2);animation:bph .8s ease-in-out infinite;}
+@keyframes bpn{0%,100%{box-shadow:0 0 20px rgba(255,204,0,.08);}50%{box-shadow:0 0 40px rgba(255,204,0,.28);}}
+@keyframes bph{0%,100%{box-shadow:0 0 30px rgba(255,51,85,.15);}50%{box-shadow:0 0 60px rgba(255,51,85,.35);}}
+.ban-ic{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;transition:all .4s;}
+.ban-ic.s-air{background:rgba(0,200,255,.12);}
+.ban-ic.s-norm{background:rgba(255,204,0,.12);animation:bob 1.5s ease-in-out infinite;}
+.ban-ic.s-haz{background:rgba(255,51,85,.15);animation:rwarn 1.5s linear infinite;}
+@keyframes bob{0%,100%{transform:scale(1);}50%{transform:scale(1.12);}}
+@keyframes rwarn{to{transform:rotate(360deg);}}
+.ban-text h2{font-family:var(--fd);font-size:16px;font-weight:700;letter-spacing:1px;}
+.ban-text p{font-size:12px;color:var(--ts);margin-top:3px;}
+.ban-r{margin-left:auto;text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:6px;}
+.ao-lbl{font-size:10px;color:var(--tm);text-transform:uppercase;letter-spacing:1px;}
+.ao-num{font-family:var(--fd);font-size:40px;font-weight:900;line-height:1;transition:color .3s;}
+.fw-bdg{font-family:var(--fm);font-size:10px;color:var(--tm);background:var(--glass);border:1px solid var(--b);border-radius:20px;padding:2px 10px;}
 
-/* ── LED CARDS ── */
-.led-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px;}
-.led-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);
-  padding:20px;text-align:center;backdrop-filter:blur(10px);transition:all var(--transition);}
-.led-bulb{width:56px;height:56px;border-radius:50%;margin:0 auto 12px;background:rgba(255,255,255,0.04);
-  border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:24px;transition:all var(--transition);}
-.led-bulb.green-on{background:rgba(0,255,136,0.2);border-color:var(--green);
-  box-shadow:0 0 30px var(--green-glow),inset 0 0 20px rgba(0,255,136,0.1);animation:glow-green 2s ease-in-out infinite;}
-.led-bulb.red-on{background:rgba(255,51,85,0.2);border-color:var(--red);
-  box-shadow:0 0 30px var(--red-glow),inset 0 0 20px rgba(255,51,85,0.1);animation:pulse-red 0.8s ease-in-out infinite;}
-.led-bulb.buzzer-on{background:rgba(255,204,0,0.15);border-color:var(--yellow);
-  box-shadow:0 0 30px var(--yellow-glow);animation:buzz-anim 0.5s ease-in-out infinite;}
-@keyframes glow-green{0%,100%{box-shadow:0 0 20px var(--green-glow);}50%{box-shadow:0 0 40px var(--green-glow),0 0 60px rgba(0,255,136,0.1);}}
-@keyframes pulse-red{0%,100%{box-shadow:0 0 20px var(--red-glow);}50%{box-shadow:0 0 50px var(--red-glow),0 0 80px rgba(255,51,85,0.15);}}
-@keyframes buzz-anim{0%,100%{transform:rotate(0deg);}25%{transform:rotate(-3deg);}75%{transform:rotate(3deg);}}
-.led-label{font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:2px;}
-.led-state{font-family:var(--font-mono);font-size:13px;font-weight:600;margin-top:4px;}
-.led-state.on{color:var(--green);}.led-state.off{color:var(--text-muted);}
-.led-state.alert{color:var(--red);}.led-state.buzz{color:var(--yellow);}
+/* METRIC CARDS */
+.cg{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;margin-bottom:20px;}
+.mc{background:var(--card);border:1px solid var(--b);border-radius:var(--r);padding:18px 20px;backdrop-filter:blur(10px);transition:transform var(--tr),border-color var(--tr);cursor:default;position:relative;overflow:hidden;}
+.mc::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--cyan),transparent);opacity:0;transition:opacity var(--tr);}
+.mc:hover{transform:translateY(-3px);border-color:var(--bb);}.mc:hover::after{opacity:1;}
+.mc-icon{font-size:22px;margin-bottom:10px;}.mc-lbl{font-size:10px;color:var(--tm);text-transform:uppercase;letter-spacing:2px;margin-bottom:6px;}
+.mc-val{font-family:var(--fd);font-size:22px;font-weight:700;color:var(--tp);transition:color var(--tr);}
+.mc-sub{font-size:11px;color:var(--tm);margin-top:4px;}
+.mc.air .mc-val{color:var(--cyan);}.mc.safe .mc-val{color:var(--green);}
+.mc.norm .mc-val{color:var(--yellow);}.mc.haz .mc-val{color:var(--red);}
 
-/* ── CONTROL PANEL ── */
-.control-panel{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);
-  padding:24px;backdrop-filter:blur(10px);margin-bottom:20px;}
-.control-title{font-family:var(--font-display);font-size:14px;font-weight:700;color:var(--text-secondary);
-  letter-spacing:2px;text-transform:uppercase;margin-bottom:18px;display:flex;align-items:center;gap:10px;}
-.control-buttons{display:flex;flex-wrap:wrap;gap:12px;}
-.btn{display:inline-flex;align-items:center;gap:8px;padding:12px 22px;border-radius:var(--radius-sm);
-  font-family:var(--font-body);font-size:13px;font-weight:600;cursor:pointer;border:none;
-  transition:all var(--transition);position:relative;overflow:hidden;letter-spacing:0.5px;outline:none;}
-.btn::before{content:'';position:absolute;inset:0;opacity:0;transition:opacity var(--transition);background:rgba(255,255,255,0.08);}
-.btn:hover::before{opacity:1;}
-.btn:active{transform:scale(0.97);}
-.btn-start{background:linear-gradient(135deg,#006b33,var(--green-dim));color:var(--green);
-  border:1px solid var(--green-dim);box-shadow:0 0 20px rgba(0,255,136,0.1);}
-.btn-start:hover:not(:disabled){box-shadow:0 0 30px rgba(0,255,136,0.25);transform:translateY(-2px);}
-.btn-start:disabled{opacity:0.35;cursor:not-allowed;}
-.btn-stop{background:linear-gradient(135deg,#660022,var(--red-dim));color:var(--red);
-  border:1px solid var(--red-dim);box-shadow:0 0 20px rgba(255,51,85,0.1);}
-.btn-stop:hover:not(:disabled){box-shadow:0 0 30px rgba(255,51,85,0.25);transform:translateY(-2px);}
-.btn-stop:disabled{opacity:0.35;cursor:not-allowed;}
-.btn-reset{background:var(--bg-glass);color:var(--yellow);border:1px solid rgba(255,204,0,0.2);}
-.btn-reset:hover{border-color:var(--yellow);box-shadow:0 0 20px var(--yellow-glow);transform:translateY(-2px);}
-.btn-outline{background:var(--bg-glass);color:var(--text-secondary);border:1px solid var(--border);}
-.btn-outline:hover{border-color:var(--border-bright);color:var(--text-primary);transform:translateY(-2px);}
-.btn-download{background:linear-gradient(135deg,rgba(0,100,160,0.3),rgba(0,150,200,0.2));
-  color:var(--cyan);border:1px solid var(--border-bright);}
-.btn-download:hover{box-shadow:0 0 20px var(--cyan-glow);transform:translateY(-2px);}
+/* LED CARDS */
+.led-g{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px;}
+.led-card{background:var(--card);border:1px solid var(--b);border-radius:var(--r);padding:20px;text-align:center;backdrop-filter:blur(10px);}
+.led-bulb{width:60px;height:60px;border-radius:50%;margin:0 auto 12px;background:rgba(255,255,255,.03);border:2px solid var(--b);display:flex;align-items:center;justify-content:center;font-size:26px;transition:all .3s;}
+.led-bulb.gs{background:rgba(0,255,136,.18);border-color:var(--green);box-shadow:0 0 28px var(--gglow),inset 0 0 16px rgba(0,255,136,.08);animation:glg 2.5s ease-in-out infinite;}
+.led-bulb.gb{border-color:var(--green);animation:blkg .2s steps(1) infinite;}
+@keyframes blkg{0%,49%{background:rgba(0,255,136,.18);box-shadow:0 0 28px var(--gglow);}50%,100%{background:rgba(255,255,255,.03);box-shadow:none;}}
+.led-bulb.rs{background:rgba(255,51,85,.18);border-color:var(--red);box-shadow:0 0 30px var(--rglow),inset 0 0 16px rgba(255,51,85,.08);animation:prds .8s ease-in-out infinite;}
+.led-bulb.buz{background:rgba(255,204,0,.15);border-color:var(--yellow);box-shadow:0 0 28px var(--yglow);animation:buzza .4s ease-in-out infinite;}
+@keyframes glg{0%,100%{box-shadow:0 0 20px var(--gglow);}50%{box-shadow:0 0 44px var(--gglow),0 0 60px rgba(0,255,136,.08);}}
+@keyframes prds{0%,100%{box-shadow:0 0 20px var(--rglow);}50%{box-shadow:0 0 55px var(--rglow),0 0 80px rgba(255,51,85,.12);}}
+@keyframes buzza{0%,100%{transform:rotate(0);}25%{transform:rotate(-4deg);}75%{transform:rotate(4deg);}}
+.led-lbl{font-size:11px;color:var(--tm);text-transform:uppercase;letter-spacing:2px;}
+.led-st{font-family:var(--fm);font-size:13px;font-weight:600;margin-top:5px;transition:color var(--tr);}
+.ls-on{color:var(--green);}.ls-blink{color:var(--green);animation:pdot .2s steps(1) infinite;}
+.ls-off{color:var(--tm);}.ls-alert{color:var(--red);}.ls-buz{color:var(--yellow);}
+.led-hint{font-size:10px;color:var(--tm);margin-top:4px;}
 
-/* ── CHARTS ── */
-.charts-grid{display:grid;grid-template-columns:2fr 1fr;gap:14px;margin-bottom:20px;}
-.chart-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);
-  padding:20px;backdrop-filter:blur(10px);}
-.chart-card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;}
-.chart-title{font-family:var(--font-display);font-size:12px;font-weight:700;color:var(--text-secondary);
-  letter-spacing:2px;text-transform:uppercase;}
-.chart-tabs{display:flex;gap:4px;}
-.chart-tab{padding:4px 10px;border-radius:4px;font-size:10px;font-weight:600;cursor:pointer;
-  color:var(--text-muted);background:transparent;border:1px solid transparent;transition:all var(--transition);}
-.chart-tab.active{background:var(--bg-glass);border-color:var(--border);color:var(--cyan);}
+/* CONTROL PANELS */
+.cpanel{background:var(--card);border:1px solid var(--b);border-radius:var(--r);padding:22px;backdrop-filter:blur(10px);margin-bottom:14px;}
+.cp-title{font-family:var(--fd);font-size:12px;font-weight:700;color:var(--ts);letter-spacing:2px;text-transform:uppercase;margin-bottom:16px;display:flex;align-items:center;gap:10px;}
+.btns{display:flex;flex-wrap:wrap;gap:12px;}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:11px 20px;border-radius:var(--rs);font-family:var(--fb);font-size:13px;font-weight:600;cursor:pointer;border:none;transition:all var(--tr);position:relative;overflow:hidden;letter-spacing:.5px;outline:none;}
+.btn::before{content:'';position:absolute;inset:0;opacity:0;transition:opacity var(--tr);background:rgba(255,255,255,.07);}
+.btn:hover::before{opacity:1;}.btn:active{transform:scale(.97);}
+.btn:disabled{opacity:.3;cursor:not-allowed;pointer-events:none;}
+.btn-dl{background:linear-gradient(135deg,rgba(0,100,160,.3),rgba(0,150,200,.2));color:var(--cyan);border:1px solid var(--bb);}
+.btn-dl:hover{box-shadow:0 0 20px var(--cglow);transform:translateY(-2px);}
+.btn-out{background:var(--glass);color:var(--ts);border:1px solid var(--b);}
+.btn-out:hover{border-color:var(--bb);color:var(--tp);transform:translateY(-2px);}
+.btn-air{background:linear-gradient(135deg,rgba(0,100,160,.25),rgba(0,150,200,.15));color:var(--cyan);border:1px solid rgba(0,200,255,.3);}
+.btn-air:hover{box-shadow:0 0 20px var(--cglow);transform:translateY(-2px);}
+.btn-norm{background:linear-gradient(135deg,rgba(120,80,0,.3),rgba(180,130,0,.2));color:var(--yellow);border:1px solid rgba(255,204,0,.3);}
+.btn-norm:hover{box-shadow:0 0 20px var(--yglow);transform:translateY(-2px);}
+.btn-haz{background:linear-gradient(135deg,rgba(120,0,20,.35),rgba(180,0,40,.25));color:var(--red);border:1px solid var(--rdim);}
+.btn-haz:hover{box-shadow:0 0 30px var(--rglow);transform:translateY(-2px);}
+.btn-auto{background:linear-gradient(135deg,rgba(0,80,60,.3),rgba(0,120,80,.2));color:var(--green);border:1px solid var(--gdim);}
+.btn-auto:hover{box-shadow:0 0 20px var(--gglow);transform:translateY(-2px);}
+/* Session buttons */
+.btn-start{background:linear-gradient(135deg,rgba(0,120,80,.35),rgba(0,180,100,.2));color:var(--green);border:1px solid var(--gdim);font-size:14px;}
+.btn-start:hover{box-shadow:0 0 24px var(--gglow);transform:translateY(-2px);}
+.btn-stop{background:linear-gradient(135deg,rgba(140,0,30,.4),rgba(200,0,40,.25));color:var(--red);border:1px solid var(--rdim);font-size:14px;}
+.btn-stop:hover{box-shadow:0 0 30px var(--rglow);transform:translateY(-2px);}
+.ovr-active{font-size:12px;color:var(--tm);margin-top:14px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.ovr-val{font-family:var(--fm);font-size:12px;font-weight:600;}
+.info-box{background:rgba(0,200,255,.04);border:1px solid rgba(0,200,255,.12);border-radius:var(--rs);padding:14px 16px;font-size:12px;color:var(--ts);line-height:1.8;}
+.info-box b{color:var(--cyan);}
 
-/* ── HISTORY TABLE ── */
-.history-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);
-  backdrop-filter:blur(10px);overflow:hidden;margin-bottom:20px;}
-.history-toolbar{padding:16px 20px;display:flex;gap:12px;align-items:center;
-  border-bottom:1px solid var(--border);flex-wrap:wrap;}
-.history-search{flex:1;min-width:180px;background:var(--bg-glass);border:1px solid var(--border);
-  border-radius:20px;padding:7px 14px 7px 32px;color:var(--text-primary);font-family:var(--font-body);
-  font-size:12px;outline:none;transition:border-color var(--transition);}
-.history-search:focus{border-color:var(--border-bright);}
-select.filter-select{background:var(--bg-glass);border:1px solid var(--border);border-radius:var(--radius-sm);
-  padding:7px 28px 7px 12px;color:var(--text-secondary);font-family:var(--font-body);font-size:12px;
-  outline:none;cursor:pointer;appearance:none;transition:border-color var(--transition);}
-select.filter-select:focus{border-color:var(--border-bright);}
+/* SESSION LIVE PANEL */
+.sess-panel{background:rgba(0,200,255,.04);border:1px solid rgba(0,200,255,.15);border-radius:var(--rs);padding:14px 18px;margin-top:14px;display:flex;align-items:center;gap:18px;flex-wrap:wrap;}
+.sess-panel.running{border-color:var(--gdim);background:rgba(0,255,136,.04);animation:sess-pulse 2s ease-in-out infinite;}
+@keyframes sess-pulse{0%,100%{box-shadow:0 0 0 rgba(0,255,136,0);}50%{box-shadow:0 0 16px rgba(0,255,136,.15);}}
+.sess-id{font-family:var(--fm);font-size:15px;font-weight:700;color:var(--cyan);}
+.sess-id.running{color:var(--green);}
+.sess-timer{font-family:var(--fd);font-size:22px;font-weight:900;color:var(--yellow);letter-spacing:2px;text-shadow:0 0 10px var(--yglow);}
+.sess-state{font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;}
+.sess-state.idle{color:var(--tm);}
+.sess-state.running{color:var(--green);animation:pdot 1.5s infinite;}
+.sess-state.stopped{color:var(--ts);}
+.sess-ack{font-size:11px;color:var(--tm);font-style:italic;}
+
+/* CHARTS */
+.chart-h{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px;}
+.chart-h3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:20px;}
+.ccard{background:var(--card);border:1px solid var(--b);border-radius:var(--r);padding:20px;backdrop-filter:blur(10px);}
+.ccard-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;}
+.ctitle{font-family:var(--fd);font-size:11px;font-weight:700;color:var(--ts);letter-spacing:2px;text-transform:uppercase;}
+.ch-wrap{position:relative;width:100%;}
+.ch-wrap.h200{height:200px;}
+.ch-wrap.h240{height:240px;}
+.ch-wrap.h260{height:260px;}
+.ch-wrap.h180{height:180px;}
+.ch-wrap canvas{position:absolute;top:0;left:0;width:100%!important;height:100%!important;}
+.ctab{display:flex;gap:4px;}
+.ctab-btn{padding:4px 10px;border-radius:4px;font-size:10px;font-weight:600;cursor:pointer;color:var(--tm);background:transparent;border:1px solid transparent;transition:all var(--tr);}
+.ctab-btn.active{background:var(--glass);border-color:var(--b);color:var(--cyan);}
+
+/* LOGS TABLE */
+.hist-card{background:var(--card);border:1px solid var(--b);border-radius:var(--r);backdrop-filter:blur(10px);overflow:hidden;margin-bottom:20px;}
+.hist-tb{padding:16px 20px;display:flex;gap:12px;align-items:center;border-bottom:1px solid var(--b);flex-wrap:wrap;}
+.hist-in{flex:1;min-width:180px;background:var(--glass);border:1px solid var(--b);border-radius:20px;padding:7px 14px 7px 32px;color:var(--tp);font-family:var(--fb);font-size:12px;outline:none;transition:border-color var(--tr);}
+.hist-in:focus{border-color:var(--bb);}
+select.fs{background:var(--glass);border:1px solid var(--b);border-radius:var(--rs);padding:7px 14px;color:var(--ts);font-family:var(--fb);font-size:12px;outline:none;cursor:pointer;transition:border-color var(--tr);}
+select.fs:focus{border-color:var(--bb);}
 table{width:100%;border-collapse:collapse;font-size:12px;}
-thead th{padding:12px 16px;text-align:left;font-size:10px;font-weight:600;color:var(--text-muted);
-  text-transform:uppercase;letter-spacing:2px;background:rgba(0,200,255,0.03);
-  border-bottom:1px solid var(--border);cursor:pointer;user-select:none;transition:color var(--transition);white-space:nowrap;}
+thead th{padding:11px 14px;text-align:left;font-size:10px;font-weight:600;color:var(--tm);text-transform:uppercase;letter-spacing:2px;background:rgba(0,200,255,.03);border-bottom:1px solid var(--b);cursor:pointer;user-select:none;white-space:nowrap;}
 thead th:hover{color:var(--cyan);}
-tbody tr{border-bottom:1px solid rgba(255,255,255,0.03);transition:background var(--transition);}
-tbody tr:hover{background:var(--bg-glass);}
-tbody tr:last-child{border-bottom:none;}
-td{padding:12px 16px;color:var(--text-secondary);white-space:nowrap;}
-td.test-id{font-family:var(--font-mono);font-size:11px;color:var(--cyan);}
-td.smoke-num{font-family:var(--font-mono);font-weight:600;}
-.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;
-  font-size:10px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;}
-.badge-safe{background:rgba(0,255,136,0.12);color:var(--green);border:1px solid var(--green-dim);}
-.badge-hazard{background:rgba(255,51,85,0.12);color:var(--red);border:1px solid var(--red-dim);}
-.badge-good{background:rgba(0,200,255,0.1);color:var(--cyan);border:1px solid var(--border);}
-.badge-bad{background:rgba(255,51,85,0.1);color:var(--red);border:1px solid var(--red-dim);}
-.badge-active{background:rgba(255,204,0,0.1);color:var(--yellow);border:1px solid rgba(255,204,0,0.2);animation:pulse-dot 1.5s infinite;}
-.badge-completed{background:rgba(0,255,136,0.08);color:var(--green);border:1px solid var(--green-dim);}
-.led-dot{display:inline-block;width:8px;height:8px;border-radius:50%;}
-.led-dot.g{background:var(--green);box-shadow:0 0 5px var(--green-glow);}
-.led-dot.r{background:var(--red);box-shadow:0 0 5px var(--red-glow);}
-.led-dot.off{background:var(--text-muted);}
-.pagination{display:flex;align-items:center;justify-content:space-between;
-  padding:12px 20px;border-top:1px solid var(--border);font-size:11px;color:var(--text-muted);}
-.page-buttons{display:flex;gap:4px;}
-.page-btn{min-width:28px;height:28px;background:var(--bg-glass);border:1px solid var(--border);
-  border-radius:4px;color:var(--text-secondary);font-size:11px;cursor:pointer;transition:all var(--transition);
-  display:flex;align-items:center;justify-content:center;}
-.page-btn:hover{border-color:var(--border-bright);color:var(--cyan);}
-.page-btn.active{background:rgba(0,200,255,0.1);border-color:var(--cyan);color:var(--cyan);}
+tbody tr{border-bottom:1px solid rgba(255,255,255,.03);transition:background var(--tr);}
+tbody tr:hover{background:var(--glass);}tbody tr:last-child{border-bottom:none;}
+td{padding:11px 14px;color:var(--ts);white-space:nowrap;}
+td.tid{font-family:var(--fm);font-size:11px;color:var(--cyan);}
+td.ao{font-family:var(--fm);font-weight:600;}
+.bdg{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;}
+.b-air{background:rgba(0,200,255,.1);color:var(--cyan);border:1px solid rgba(0,200,255,.25);}
+.b-norm{background:rgba(255,204,0,.1);color:var(--yellow);border:1px solid rgba(255,204,0,.25);}
+.b-haz{background:rgba(255,51,85,.1);color:var(--red);border:1px solid rgba(255,51,85,.25);}
+.b-safe{background:rgba(0,255,136,.1);color:var(--green);border:1px solid var(--gdim);}
+.b-nsts{background:rgba(255,204,0,.1);color:var(--yellow);border:1px solid rgba(255,204,0,.3);}
+.b-hsts{background:rgba(255,51,85,.1);color:var(--red);border:1px solid var(--rdim);}
+.b-act{background:rgba(0,200,255,.08);color:var(--cyan);border:1px solid var(--bb);animation:pdot 1.5s infinite;}
+.b-cmp{background:rgba(0,255,136,.07);color:var(--green);border:1px solid var(--gdim);}
+.ldot{display:inline-block;width:8px;height:8px;border-radius:50%;margin:0 2px;}
+.ldot.g{background:var(--green);box-shadow:0 0 4px var(--gglow);}
+.ldot.r{background:var(--red);box-shadow:0 0 4px var(--rglow);}
+.ldot.off{background:var(--tm);}
+.pg{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;border-top:1px solid var(--b);font-size:11px;color:var(--tm);}
+.pg-btns{display:flex;gap:4px;}
+.pgb{min-width:28px;height:28px;background:var(--glass);border:1px solid var(--b);border-radius:4px;color:var(--ts);font-size:11px;cursor:pointer;transition:all var(--tr);display:flex;align-items:center;justify-content:center;}
+.pgb:hover{border-color:var(--bb);color:var(--cyan);}
+.pgb.active{background:rgba(0,200,255,.1);border-color:var(--cyan);color:var(--cyan);}
 
-/* ── TOAST ── */
-#toast-container{position:fixed;bottom:24px;right:24px;z-index:2000;display:flex;flex-direction:column-reverse;gap:8px;}
-.toast{display:flex;align-items:center;gap:12px;padding:12px 16px;background:rgba(10,22,40,0.95);
-  border:1px solid var(--border);border-radius:var(--radius-sm);backdrop-filter:blur(20px);
-  font-size:13px;color:var(--text-primary);max-width:340px;animation:toast-in 0.3s ease-out;box-shadow:0 8px 32px rgba(0,0,0,0.4);}
-.toast.toast-success{border-color:var(--green-dim);}
-.toast.toast-error{border-color:var(--red-dim);}
-.toast.toast-warning{border-color:rgba(255,204,0,0.3);}
-.toast.toast-info{border-color:var(--border-bright);}
-.toast-icon{font-size:18px;flex-shrink:0;}
-.toast.fade-out{animation:toast-out 0.3s ease-in forwards;}
-@keyframes toast-in{from{opacity:0;transform:translateX(20px);}to{opacity:1;transform:translateX(0);}}
-@keyframes toast-out{from{opacity:1;transform:translateX(0);}to{opacity:0;transform:translateX(20px);}}
+/* SENSOR STATUS */
+.stat-g{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-bottom:20px;}
+.stat-c{background:var(--card);border:1px solid var(--b);border-radius:var(--r);padding:20px;backdrop-filter:blur(10px);}
+.stat-l{font-size:10px;color:var(--tm);text-transform:uppercase;letter-spacing:2px;margin-bottom:8px;}
+.stat-v{font-family:var(--fm);font-size:16px;font-weight:600;color:var(--tp);}
+.stat-v.on{color:var(--green);}.stat-v.off{color:var(--red);}
 
-/* ── MODAL ── */
-.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(8px);
-  z-index:500;display:none;align-items:center;justify-content:center;}
-.modal-overlay.open{display:flex;}
-.modal-box{background:var(--bg-secondary);border:1px solid var(--border);border-radius:var(--radius);
-  padding:28px;max-width:420px;width:90%;animation:modal-in 0.25s ease-out;}
-@keyframes modal-in{from{opacity:0;transform:scale(0.95) translateY(-10px);}to{opacity:1;transform:scale(1) translateY(0);}}
-.modal-title{font-family:var(--font-display);font-size:16px;font-weight:700;color:var(--text-primary);
-  letter-spacing:1px;margin-bottom:20px;display:flex;align-items:center;gap:10px;}
-.theme-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
-.theme-option{padding:14px;border:2px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;transition:all var(--transition);text-align:center;}
-.theme-option:hover{border-color:var(--border-bright);}
-.theme-option.selected{border-color:var(--cyan);box-shadow:0 0 15px var(--cyan-glow);}
-.theme-preview{width:100%;height:30px;border-radius:4px;margin-bottom:8px;}
-.theme-name{font-size:12px;font-weight:600;color:var(--text-secondary);}
+/* TOAST */
+#toast-c{position:fixed;bottom:24px;right:24px;z-index:2000;display:flex;flex-direction:column-reverse;gap:8px;pointer-events:none;}
+.toast{display:flex;align-items:center;gap:12px;padding:12px 16px;background:rgba(5,13,26,.96);border:1px solid var(--b);border-radius:var(--rs);backdrop-filter:blur(20px);font-size:13px;color:var(--tp);max-width:360px;animation:tin .3s ease-out;box-shadow:0 8px 32px rgba(0,0,0,.4);pointer-events:auto;}
+.toast.ts{border-color:var(--gdim);}.toast.te{border-color:var(--rdim);}.toast.tw{border-color:rgba(255,204,0,.3);}.toast.ti{border-color:var(--bb);}
+/* Secret combo toast - tiny subtle checkmark only */
+.toast.tsec{padding:6px 10px;min-width:unset;max-width:48px;border-color:rgba(0,200,255,.2);background:rgba(5,13,26,.92);box-shadow:0 2px 12px rgba(0,0,0,.3);justify-content:center;}
+.toast.tsec .t-ic{font-size:13px;margin:0;}
+.toast.tsec span:last-child{display:none;}
+.t-ic{font-size:18px;flex-shrink:0;}.toast.fade-out{animation:tout .3s ease-in forwards;}
+@keyframes tin{from{opacity:0;transform:translateX(20px);}to{opacity:1;transform:translateX(0);}}
+@keyframes tout{from{opacity:1;}to{opacity:0;transform:translateX(20px);}}
 
-/* ── QUEUE ── */
-.queue-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);
-  padding:20px;backdrop-filter:blur(10px);margin-bottom:14px;}
-.queue-item{display:flex;align-items:center;gap:14px;padding:10px 14px;border-radius:var(--radius-sm);
-  margin-bottom:6px;background:rgba(255,255,255,0.02);border:1px solid var(--border);transition:background var(--transition);}
-.queue-item:last-child{margin-bottom:0;}
-.queue-item.current{background:rgba(0,200,255,0.06);border-color:var(--border-bright);}
-.queue-num{font-family:var(--font-mono);font-size:11px;color:var(--text-muted);width:30px;}
-.queue-icon{font-size:18px;}
-.queue-name{font-size:13px;font-weight:500;color:var(--text-primary);flex:1;}
-.queue-status-badge{font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;}
-.qs-testing{background:rgba(0,200,255,0.1);color:var(--cyan);border:1px solid var(--border-bright);animation:pulse-dot 1.5s infinite;}
-.qs-waiting{background:rgba(255,255,255,0.04);color:var(--text-muted);border:1px solid var(--border);}
-.qs-done{background:rgba(0,255,136,0.08);color:var(--green);border:1px solid var(--green-dim);}
+/* COMBO INDICATOR — subtle key counter strip at bottom-left */
+#combo-hud{position:fixed;bottom:24px;left:24px;z-index:1999;display:flex;gap:6px;pointer-events:none;opacity:0;transition:opacity .3s;}
+#combo-hud.show{opacity:1;}
+.combo-dot{width:10px;height:10px;border-radius:50%;background:rgba(180,80,255,.3);border:1px solid rgba(180,80,255,.5);transition:all .2s;}
+.combo-dot.lit{background:rgba(180,80,255,.9);box-shadow:0 0 10px rgba(180,80,255,.8);}
 
-/* ── EMPTY STATE ── */
-.empty-state{padding:40px 20px;text-align:center;color:var(--text-muted);}
-.empty-state-icon{font-size:40px;margin-bottom:12px;}
-.empty-state p{font-size:13px;}
+/* MODAL */
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.72);backdrop-filter:blur(8px);z-index:500;display:none;align-items:center;justify-content:center;}
+.modal.open{display:flex;}
+.modal-box{background:var(--bg2);border:1px solid var(--b);border-radius:var(--r);padding:28px;max-width:440px;width:90%;animation:min .25s ease-out;}
+@keyframes min{from{opacity:0;transform:scale(.95) translateY(-10px);}to{opacity:1;transform:scale(1) translateY(0);}}
+.modal-t{font-family:var(--fd);font-size:15px;font-weight:700;color:var(--tp);letter-spacing:1px;margin-bottom:20px;display:flex;align-items:center;gap:10px;}
+.tg{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.to{padding:14px;border:2px solid var(--b);border-radius:var(--rs);cursor:pointer;transition:all var(--tr);text-align:center;}
+.to:hover{border-color:var(--bb);}.to.sel{border-color:var(--cyan);box-shadow:0 0 15px var(--cglow);}
+.tp-prev{width:100%;height:28px;border-radius:4px;margin-bottom:8px;}
+.tn{font-size:12px;font-weight:600;color:var(--ts);}
 
-/* ── MISC ── */
-.tooltip-wrap{position:relative;}
-.tooltip-wrap:hover .tooltip{display:block;}
-.tooltip{display:none;position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);
-  background:rgba(10,22,40,0.95);border:1px solid var(--border);border-radius:4px;padding:6px 10px;
-  font-size:11px;color:var(--text-primary);white-space:nowrap;z-index:999;backdrop-filter:blur(10px);}
-.text-cyan{color:var(--cyan);}.text-green{color:var(--green);}
-.text-red{color:var(--red);}.text-yellow{color:var(--yellow);}.text-muted{color:var(--text-muted);}
-::-webkit-scrollbar{width:6px;}::-webkit-scrollbar-track{background:transparent;}
-::-webkit-scrollbar-thumb{background:var(--border);border-radius:10px;}
-::-webkit-scrollbar-thumb:hover{background:var(--border-bright);}
+/* QUEUE */
+.qcard{background:var(--card);border:1px solid var(--b);border-radius:var(--r);padding:20px;backdrop-filter:blur(10px);margin-bottom:14px;}
+.qi{display:flex;align-items:center;gap:14px;padding:10px 14px;border-radius:var(--rs);margin-bottom:6px;background:rgba(255,255,255,.02);border:1px solid var(--b);transition:all var(--tr);}
+.qi.cur{background:rgba(0,200,255,.06);border-color:var(--bb);}
+.qi-n{font-family:var(--fm);font-size:11px;color:var(--tm);width:32px;}
+.qi-ic{font-size:18px;}.qi-name{font-size:13px;font-weight:500;color:var(--tp);flex:1;}
+.qs-bdg{font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;}
+.qs-t{background:rgba(0,200,255,.1);color:var(--cyan);border:1px solid var(--bb);animation:pdot 1.5s infinite;}
+.qs-w{background:rgba(255,255,255,.04);color:var(--tm);border:1px solid var(--b);}
+.qs-d{background:rgba(0,255,136,.08);color:var(--green);border:1px solid var(--gdim);}
+.es{padding:36px 20px;text-align:center;color:var(--tm);}
+.es-ic{font-size:38px;margin-bottom:12px;opacity:.5;}.es p{font-size:13px;}
 
-/* ── CONNECTION STATUS BAR ── */
-#conn-status-bar {
-  display: none;
-  position: sticky;
-  top: var(--header-h);
-  z-index: 84;
-  background: rgba(255,51,85,0.12);
-  border-bottom: 1px solid var(--red-dim);
-  padding: 8px 24px;
-  font-size: 12px;
-  color: var(--red);
-  text-align: center;
-  font-family: var(--font-mono);
-  letter-spacing: 1px;
-}
-#conn-status-bar.visible { display: block; }
+::-webkit-scrollbar{width:6px;}::-webkit-scrollbar-track{background:transparent;}::-webkit-scrollbar-thumb{background:var(--b);border-radius:10px;}::-webkit-scrollbar-thumb:hover{background:var(--bb);}
+.tc{color:var(--cyan);}.tg2{color:var(--green);}.tr2{color:var(--red);}.ty{color:var(--yellow);}.tmut{color:var(--tm);}
 
-@media(max-width:900px){
-  :root{--sidebar-w:0px;}
-  .sidebar{transform:translateX(-240px);}
-  .sidebar.mobile-open{transform:translateX(0);width:240px;}
-  .main-content{margin-left:0;}
-  .charts-grid{grid-template-columns:1fr;}
-  .led-grid{grid-template-columns:1fr 1fr;}
-}
-@media(max-width:600px){
-  .page-content{padding:16px;}
-  .cards-grid{grid-template-columns:1fr 1fr;}
-  .led-grid{grid-template-columns:1fr 1fr;}
-  .control-buttons{flex-direction:column;}
-  .btn{justify-content:center;}
-}
+@media(max-width:900px){:root{--sw:0px;}.sidebar{transform:translateX(-240px);}.main{margin-left:0;}.chart-h{grid-template-columns:1fr;}.chart-h3{grid-template-columns:1fr;}.led-g{grid-template-columns:1fr 1fr;}}
+@media(max-width:600px){.pc{padding:16px;}.cg{grid-template-columns:1fr 1fr;}.thresh-bar{flex-direction:column;}.btns{flex-direction:column;}}
 </style>
 </head>
 <body data-theme="dark">
 
-<!-- Warmup banner -->
-<div id="warmup-banner">
+<div id="wb">
   <span class="wb-icon">🌡️</span>
-  <span class="wb-label">SENSOR WARMING UP</span>
-  <span class="wb-timer" id="wb-timer">03:00</span>
-  <div class="wb-track"><div class="wb-fill" id="wb-fill" style="width:0%"></div></div>
+  <span class="wb-lbl">SENSOR WARMING UP</span>
+  <span class="wb-time" id="wbt">03:00</span>
+  <div class="wb-track"><div class="wb-fill" id="wbf"></div></div>
   <div class="wb-steps">
-    <span class="wb-step active" id="wbs-1">⚡ Heating</span>
-    <span class="wb-step"        id="wbs-2">🔄 Stabilizing</span>
-    <span class="wb-step"        id="wbs-3">📡 Connecting</span>
-    <span class="wb-step"        id="wbs-4">✅ Ready</span>
+    <span class="wb-step" id="wbs1">⚡ Heating</span>
+    <span class="wb-step" id="wbs2">🔄 Stabilizing</span>
+    <span class="wb-step" id="wbs3">📡 Calibrating</span>
+    <span class="wb-step" id="wbs4">✅ Ready</span>
   </div>
-  <button class="wb-dismiss" onclick="dismissWarmupBanner()">Dismiss ✕</button>
+  <button class="wb-dis" onclick="hideWb()">Dismiss ✕</button>
+</div>
+<div id="conn-bar">⚠ Cannot reach Supabase — check URL / anon key / network</div>
+
+<!-- Secret combo HUD: 3 dots light up as you press -->
+<div id="combo-hud">
+  <div class="combo-dot" id="cd1"></div>
+  <div class="combo-dot" id="cd2"></div>
+  <div class="combo-dot" id="cd3"></div>
 </div>
 
-<!-- Connection error bar -->
-<div id="conn-status-bar">⚠ Cannot connect to Supabase — check your credentials or network connection</div>
-
-<div class="app-shell">
+<div class="shell">
   <aside class="sidebar" id="sidebar">
-    <div class="sidebar-logo">
-      <div class="logo-icon">TZ</div>
-      <div>
-        <div class="logo-text">SMART</div>
-        <div class="logo-sub">Smoke Detection</div>
-      </div>
+    <div class="logo-wrap">
+      <div class="logo-ic">TZ</div>
+      <div><div class="logo-tx">TROYIKZ</div><div class="logo-sub">Smoke Detection v1.2</div></div>
     </div>
-    <nav class="sidebar-nav">
-      <div class="nav-section-label">Main</div>
-      <a class="nav-item active" data-section="dashboard" onclick="showSection('dashboard',this)">
-        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
-        Dashboard
+    <nav class="nav">
+      <div class="nav-sec">Monitor</div>
+      <a class="nav-item active" data-sec="dashboard" onclick="nav('dashboard',this)">
+        <svg class="nav-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Dashboard
       </a>
-      <a class="nav-item" data-section="live" onclick="showSection('live',this)">
-        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5.2 5.2l1.4 1.4M17.4 17.4l1.4 1.4M5.2 18.8l1.4-1.4M17.4 6.6l1.4-1.4"/></svg>
-        Live Monitoring
+      <a class="nav-item" data-sec="live" onclick="nav('live',this)">
+        <svg class="nav-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22,12 18,12 15,21 9,3 6,12 2,12"/></svg>Live Feed
       </a>
-      <a class="nav-item" data-section="analytics" onclick="showSection('analytics',this)">
-        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22,12 18,12 15,21 9,3 6,12 2,12"/></svg>
-        Analytics
+      <a class="nav-item" data-sec="analytics" onclick="nav('analytics',this)">
+        <svg class="nav-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Analytics
       </a>
-      <div class="nav-section-label">System</div>
-      <a class="nav-item" data-section="sensor" onclick="showSection('sensor',this)">
-        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
-        Sensor Status
+      <div class="nav-sec">System</div>
+      <a class="nav-item" data-sec="sensor" onclick="nav('sensor',this)">
+        <svg class="nav-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>Sensor Status
       </a>
-      <a class="nav-item" data-section="logs" onclick="showSection('logs',this)">
-        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-        Activity Logs
-        <span class="nav-badge" id="log-badge">0</span>
+      <a class="nav-item" data-sec="logs" onclick="nav('logs',this)">
+        <svg class="nav-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16h16V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>Logs
+        <span class="nav-bdg" id="log-bdg">0</span>
       </a>
-      <a class="nav-item" data-section="reports" onclick="showSection('reports',this)">
-        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7,10 12,15 17,10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-        Reports
+      <a class="nav-item" data-sec="reports" onclick="nav('reports',this)">
+        <svg class="nav-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7,10 12,15 17,10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Reports
       </a>
-      <a class="nav-item" onclick="openThemeModal()">
-        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
-        Themes
+      <a class="nav-item" onclick="openTheme()">
+        <svg class="nav-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2"/></svg>Themes
       </a>
     </nav>
-    <div class="sidebar-footer">
-      <div class="sensor-mini-status">
-        <div class="status-dot" id="sidebar-status-dot"></div>
-        <span id="sidebar-status-text">Initializing...</span>
+    <div class="sb-footer">
+      <div class="sb-status">
+        <div class="sdot" id="sb-dot"></div>
+        <span id="sb-txt" style="font-size:11px">Connecting…</span>
       </div>
     </div>
   </aside>
 
-  <div class="main-content">
-    <header class="header">
-      <div class="header-search">
-        <span class="search-icon">🔍</span>
-        <input type="text" placeholder="Search logs, tests..." id="global-search" oninput="globalSearch(this.value)">
+  <div class="main">
+    <header class="hdr">
+      <div class="hdr-search">
+        <span class="si">🔍</span>
+        <input type="text" placeholder="Search test IDs, classifications…" id="gsearch" oninput="gSearch(this.value)">
       </div>
-      <div class="header-right">
-        <div class="header-status-pill">
-          <div class="status-dot" id="hdr-supabase-dot"></div>
-          <span>Supabase</span>
-        </div>
-        <div class="header-status-pill">
-          <div class="status-dot" id="hdr-esp32-dot"></div>
-          <span>ESP32</span>
-        </div>
-        <div class="header-datetime">
-          <div class="header-date" id="hdr-date">—</div>
-          <div class="header-time" id="hdr-time">00:00:00</div>
-        </div>
-        <div class="header-icon-btn tooltip-wrap" onclick="toggleTheme()">🎨<span class="tooltip">Toggle Light/Dark</span></div>
-        <div class="header-icon-btn tooltip-wrap" onclick="openThemeModal()">⚙️<span class="tooltip">Theme Settings</span></div>
-        <div class="header-icon-btn tooltip-wrap" onclick="showSection('logs',document.querySelector('[data-section=logs]'))">
-          🔔<span class="tooltip">Notifications</span>
-          <span class="notif-badge" id="hdr-notif-badge">0</span>
+      <div class="hdr-r">
+        <div class="pill"><div class="sdot" id="h-sup"></div><span>Supabase</span></div>
+        <div class="pill"><div class="sdot" id="h-esp"></div><span>ESP32</span></div>
+        <div class="hdr-dt"><div class="hdr-date" id="hd">—</div><div class="hdr-time" id="ht">00:00:00</div></div>
+        <div class="ico-btn tip-w" onclick="toggleTheme()">🎨<span class="tip">Toggle Light/Dark</span></div>
+        <div class="ico-btn tip-w" onclick="openTheme()">⚙️<span class="tip">Theme Settings</span></div>
+        <div class="ico-btn tip-w" onclick="nav('logs',document.querySelector('[data-sec=logs]'))">
+          🔔<span class="tip">Alerts</span>
+          <span class="nbdg" id="hnotif">0</span>
         </div>
       </div>
     </header>
 
-    <div class="page-content">
+    <div class="pc">
 
-      <!-- DASHBOARD -->
-      <section class="page-section active" id="sec-dashboard">
-        <div class="section-header">
-          <div>
-            <div class="section-title">Dashboard</div>
-            <div class="section-sub">Real-time smoke emission monitoring overview</div>
-          </div>
-          <span class="badge badge-active" id="realtime-badge">● LIVE</span>
+      <!-- ═══ DASHBOARD ═══ -->
+      <section class="ps active" id="sec-dashboard">
+        <div class="sec-hdr">
+          <div><div class="sec-title">Dashboard</div><div class="sec-sub">Real-time smoke detection & hazard classification</div></div>
+          <span class="bdg b-act" id="live-bdg">● LIVE</span>
         </div>
-        <div class="status-banner" id="status-banner">
-          <div class="banner-indicator safe" id="banner-icon">✅</div>
-          <div class="banner-text">
-            <h2 id="banner-title">SYSTEM READY</h2>
-            <p id="banner-sub">Sensor initialized — start a test session to begin monitoring</p>
-          </div>
-          <div class="banner-smoke-val">
-            <div class="smoke-val-label">Smoke Value</div>
-            <div class="smoke-val-num text-green" id="banner-smoke-val">—</div>
-          </div>
+
+        <div class="thresh-bar">
+          <div class="tpill air"><div class="tdot c"></div>AIR: AO &lt; 320</div>
+          <div class="tpill norm"><div class="tdot y"></div>NORMAL SMOKE: 320 ≤ AO &lt; 1000</div>
+          <div class="tpill haz"><div class="tdot r"></div>HAZARDOUS SMOKE: AO ≥ 1000</div>
         </div>
-        <div class="cards-grid">
-          <div class="metric-card cyan">
-            <div class="metric-icon">🌫️</div>
-            <div class="metric-label">Current Reading</div>
-            <div class="metric-value" id="card-smoke-val">—</div>
-            <div class="metric-sub">ADC Units</div>
+
+        <!-- Status Banner -->
+        <div class="banner s-idle" id="banner">
+          <div class="ban-ic" id="b-ic">💤</div>
+          <div class="ban-text">
+            <h2 id="b-title" style="color:var(--ts)">AWAITING DATA</h2>
+            <p id="b-sub">Press <b style="color:var(--green)">▶ Start Session</b> below or send <code style="font-family:var(--fm);color:var(--cyan)">S</code> via ESP32 Serial</p>
           </div>
-          <div class="metric-card" id="card-class-wrap">
-            <div class="metric-icon">🧪</div>
-            <div class="metric-label">Classification</div>
-            <div class="metric-value" id="card-classification">—</div>
-            <div class="metric-sub">Smoke Type</div>
-          </div>
-          <div class="metric-card" id="card-status-wrap">
-            <div class="metric-icon">🛡️</div>
-            <div class="metric-label">Hazard Level</div>
-            <div class="metric-value" id="card-status">—</div>
-            <div class="metric-sub">Current Level</div>
-          </div>
-          <div class="metric-card cyan">
-            <div class="metric-icon">🧪</div>
-            <div class="metric-label">Total Tests Today</div>
-            <div class="metric-value" id="card-total-today">0</div>
-            <div class="metric-sub">Completed</div>
-          </div>
-          <div class="metric-card safe">
-            <div class="metric-icon">✅</div>
-            <div class="metric-label">Safe Today</div>
-            <div class="metric-value" id="card-safe-today">0</div>
-            <div class="metric-sub">Non-Hazardous</div>
-          </div>
-          <div class="metric-card hazard">
-            <div class="metric-icon">⚠️</div>
-            <div class="metric-label">Hazardous Today</div>
-            <div class="metric-value" id="card-hazard-today">0</div>
-            <div class="metric-sub">Requires Attention</div>
-          </div>
-          <div class="metric-card" id="card-session-wrap">
-            <div class="metric-icon">🔬</div>
-            <div class="metric-label">Session Status</div>
-            <div class="metric-value text-muted" id="card-session">IDLE</div>
-            <div class="metric-sub" id="card-session-id">—</div>
-          </div>
-          <div class="metric-card cyan">
-            <div class="metric-icon">📡</div>
-            <div class="metric-label">ESP32 Status</div>
-            <div class="metric-value" id="card-esp32">OFFLINE</div>
-            <div class="metric-sub" id="card-esp32-rssi">No signal</div>
+          <div class="ban-r">
+            <div><div class="ao-lbl">AO Value</div><div class="ao-num tmut" id="b-ao">—</div></div>
+            <div class="fw-bdg" id="b-fw">FW: —</div>
           </div>
         </div>
-        <div style="font-family:var(--font-display);font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;">Hardware Indicators</div>
-        <div class="led-grid">
+
+        <!-- Metric Cards -->
+        <div class="cg">
+          <div class="mc air"><div class="mc-icon">🌫️</div><div class="mc-lbl">AO Reading</div><div class="mc-val" id="mc-ao">—</div><div class="mc-sub">ADC (0–1023)</div></div>
+          <div class="mc" id="mc-cls-c"><div class="mc-icon">🧪</div><div class="mc-lbl">Classification</div><div class="mc-val" id="mc-cls">—</div><div class="mc-sub">ESP32 output</div></div>
+          <div class="mc" id="mc-sts-c"><div class="mc-icon">🛡️</div><div class="mc-lbl">Hazard Status</div><div class="mc-val" id="mc-sts">—</div><div class="mc-sub">Safe/Normal/Hazardous</div></div>
+          <div class="mc"><div class="mc-icon">🔬</div><div class="mc-lbl">Session</div><div class="mc-val tmut" id="mc-sess">—</div><div class="mc-sub" id="mc-sess-sub">No active session</div></div>
+          <div class="mc safe"><div class="mc-icon">✅</div><div class="mc-lbl">Safe Today</div><div class="mc-val" id="mc-safe">0</div><div class="mc-sub">AIR readings</div></div>
+          <div class="mc norm"><div class="mc-icon">💨</div><div class="mc-lbl">Normal Today</div><div class="mc-val" id="mc-norm">0</div><div class="mc-sub">Non-hazardous</div></div>
+          <div class="mc haz"><div class="mc-icon">⚠️</div><div class="mc-lbl">Hazardous Today</div><div class="mc-val" id="mc-haz">0</div><div class="mc-sub">Requires action</div></div>
+          <div class="mc air"><div class="mc-icon">📡</div><div class="mc-lbl">ESP32</div><div class="mc-val" id="mc-esp">OFFLINE</div><div class="mc-sub" id="mc-rssi">No signal</div></div>
+        </div>
+
+        <!-- Hardware Indicators -->
+        <div style="font-family:var(--fd);font-size:10px;font-weight:700;color:var(--tm);letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;">Hardware Indicators</div>
+        <div class="led-g">
           <div class="led-card">
-            <div class="led-bulb" id="led-green-bulb">🟢</div>
-            <div class="led-label">Green LED</div>
-            <div class="led-state off" id="led-green-state">OFF</div>
+            <div class="led-bulb" id="led-g">💡</div>
+            <div class="led-lbl">Green LED</div>
+            <div class="led-st ls-off" id="led-gs">OFF</div>
+            <div class="led-hint" id="led-gh">—</div>
           </div>
           <div class="led-card">
-            <div class="led-bulb" id="led-red-bulb">🔴</div>
-            <div class="led-label">Red LED</div>
-            <div class="led-state off" id="led-red-state">OFF</div>
+            <div class="led-bulb" id="led-r">💡</div>
+            <div class="led-lbl">Red LED</div>
+            <div class="led-st ls-off" id="led-rs">OFF</div>
+            <div class="led-hint">HAZARDOUS only</div>
           </div>
           <div class="led-card">
-            <div class="led-bulb" id="led-buzzer-bulb">🔊</div>
-            <div class="led-label">Buzzer</div>
-            <div class="led-state off" id="led-buzzer-state">SILENT</div>
+            <div class="led-bulb" id="led-b">🔊</div>
+            <div class="led-lbl">Buzzer</div>
+            <div class="led-st ls-off" id="led-bs">SILENT</div>
+            <div class="led-hint">HAZARDOUS only</div>
           </div>
         </div>
-        <div class="control-panel">
-          <div class="control-title"><span>🎮</span> Testing Controls</div>
-          <div style="font-size:12px;color:var(--text-muted);margin-bottom:16px;">
-            Current Session: <span class="text-cyan" id="ctrl-session-id">None</span>
+
+        <!-- SESSION CONTROL -->
+        <div class="cpanel">
+          <div class="cp-title"><span>🎮</span> Session Control
+            <span style="font-size:10px;color:var(--tm);font-family:var(--fb);font-weight:400;letter-spacing:0;margin-left:6px;">→ sent to ESP32 via Supabase commands (~1s)</span>
           </div>
-          <div class="control-buttons">
-            <button class="btn btn-start" id="btn-start" disabled onclick="startTesting()">▶ Start Testing Now</button>
-            <button class="btn btn-stop"  id="btn-stop"  disabled onclick="stopTesting()">■ Stop Testing</button>
-            <button class="btn btn-reset"   onclick="resetSession()">↺ Reset Session</button>
-            <button class="btn btn-outline" onclick="clearCurrentSession()">✕ Clear Session</button>
-            <button class="btn btn-download" onclick="showSection('reports',document.querySelector('[data-section=reports]'))">⬇ Download Reports</button>
+          <div class="btns">
+            <button class="btn btn-start" id="btn-sess-start" onclick="sendCmd('S')">▶ Start Session</button>
+            <button class="btn btn-stop"  id="btn-sess-stop"  onclick="sendCmd('X')">■ Stop Session</button>
           </div>
-        </div>
-        <div class="charts-grid">
-          <div class="chart-card">
-            <div class="chart-card-header">
-              <div class="chart-title">📈 Real-Time Smoke Graph</div>
-              <div class="chart-tabs">
-                <div class="chart-tab active" onclick="switchChartView('live',this)">Live</div>
-                <div class="chart-tab" onclick="switchChartView('daily',this)">Daily</div>
-                <div class="chart-tab" onclick="switchChartView('weekly',this)">Weekly</div>
-                <div class="chart-tab" onclick="switchChartView('monthly',this)">Monthly</div>
-              </div>
+          <!-- Live session panel -->
+          <div class="sess-panel" id="sess-panel">
+            <div>
+              <div style="font-size:10px;color:var(--tm);letter-spacing:2px;text-transform:uppercase;margin-bottom:4px;">Session ID</div>
+              <div class="sess-id" id="sess-id-lbl">—</div>
             </div>
-            <canvas id="chart-realtime" height="180"></canvas>
+            <div>
+              <div style="font-size:10px;color:var(--tm);letter-spacing:2px;text-transform:uppercase;margin-bottom:4px;">Elapsed</div>
+              <div class="sess-timer" id="sess-timer">00:00</div>
+            </div>
+            <div>
+              <div style="font-size:10px;color:var(--tm);letter-spacing:2px;text-transform:uppercase;margin-bottom:4px;">State</div>
+              <div class="sess-state idle" id="sess-state">IDLE</div>
+            </div>
+            <div class="sess-ack" id="sess-ack"></div>
           </div>
-          <div class="chart-card">
-            <div class="chart-card-header"><div class="chart-title">🥧 Classification Ratio</div></div>
-            <canvas id="chart-donut" height="180"></canvas>
+        </div>
+
+        <!-- OVERRIDE CONTROLS -->
+        <div class="cpanel">
+          <div class="cp-title"><span>🎛️</span> Override Controls
+            <span style="font-size:10px;color:var(--tm);font-family:var(--fb);font-weight:400;letter-spacing:0;margin-left:6px;">→ changes classification, status & LED fields in Supabase records</span>
+          </div>
+          <div style="font-size:12px;color:var(--tm);margin-bottom:14px;line-height:1.8;">
+            Forces the ESP32 to a specific tier. All subsequent records will have the overridden
+            <b style="color:var(--ts)">classification</b>, <b style="color:var(--ts)">status</b>, and <b style="color:var(--ts)">LED/buzzer</b> fields until AUTO is restored.
+            The raw <b style="color:var(--ts)">smoke_value (AO)</b> remains the real sensor reading.
+          </div>
+          <div class="btns">
+            <button class="btn btn-air"  onclick="sendCmd('0')">🌬️ Force AIR</button>
+            <button class="btn btn-norm" onclick="sendCmd('1')">💨 Force NORMAL</button>
+            <button class="btn btn-haz"  onclick="sendCmd('2')">⚠️ Force HAZARDOUS</button>
+            <button class="btn btn-auto" onclick="sendCmd('A')">🔄 Back to AUTO</button>
+          </div>
+          <div class="ovr-active">
+            Override: <span class="ovr-val tc" id="ovr-lbl">AUTO (sensor-driven)</span>
+            <span id="ovr-ack" style="font-size:11px;color:var(--tm);display:none;">— waiting for ESP32…</span>
+          </div>
+        </div>
+
+        <!-- Export shortcuts -->
+        <div class="cpanel">
+          <div class="cp-title"><span>📁</span> Export</div>
+          <div style="display:flex;gap:12px;flex-wrap:wrap;">
+            <button class="btn btn-dl" onclick="nav('reports',document.querySelector('[data-sec=reports]'))">⬇ Export Reports</button>
+            <button class="btn btn-out" onclick="exportCSV()">📊 Quick CSV</button>
+          </div>
+        </div>
+
+        <!-- Real-time charts -->
+        <div class="chart-h">
+          <div class="ccard">
+            <div class="ccard-hdr">
+              <div class="ctitle">📈 Live AO Graph</div>
+              <div style="font-size:10px;color:var(--tm);font-family:var(--fm);">last 60 readings</div>
+            </div>
+            <div class="ch-wrap h200"><canvas id="crt"></canvas></div>
+          </div>
+          <div class="ccard">
+            <div class="ccard-hdr"><div class="ctitle">🥧 Classification Split</div></div>
+            <div class="ch-wrap h200"><canvas id="cdonut"></canvas></div>
           </div>
         </div>
       </section>
 
-      <!-- LIVE MONITORING -->
-      <section class="page-section" id="sec-live">
-        <div class="section-header">
-          <div><div class="section-title">Live Monitoring</div><div class="section-sub">Real-time sensor feed and vehicle queue</div></div>
+      <!-- ═══ LIVE FEED ═══ -->
+      <section class="ps" id="sec-live">
+        <div class="sec-hdr">
+          <div><div class="sec-title">Live Feed</div><div class="sec-sub">Streaming sensor data + vehicle queue</div></div>
+          <span class="bdg b-act">● STREAMING</span>
         </div>
-        <div class="queue-card">
-          <div style="font-family:var(--font-display);font-size:12px;font-weight:700;color:var(--text-secondary);letter-spacing:2px;margin-bottom:14px;">🚗 VEHICLE QUEUE</div>
-          <div id="queue-list"><div class="empty-state"><div class="empty-state-icon">🚫</div><p>No vehicles in queue. Add vehicles to begin.</p></div></div>
+        <div class="qcard">
+          <div style="font-family:var(--fd);font-size:11px;font-weight:700;color:var(--ts);letter-spacing:2px;margin-bottom:14px;">🚗 VEHICLE QUEUE</div>
+          <div id="qlist"><div class="es"><div class="es-ic">🚫</div><p>Queue is empty.</p></div></div>
           <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap;">
-            <input id="queue-input" type="text" placeholder="Enter plate / vehicle name..."
-              style="flex:1;min-width:180px;background:var(--bg-glass);border:1px solid var(--border);border-radius:var(--radius-sm);padding:9px 14px;color:var(--text-primary);font-family:var(--font-body);font-size:13px;outline:none;"
-              onkeydown="if(event.key==='Enter')addToQueue()">
-            <button class="btn btn-outline" onclick="addToQueue()">+ Add to Queue</button>
-            <button class="btn btn-outline" onclick="clearQueue()">Clear Queue</button>
+            <input id="qin" type="text" placeholder="Enter plate / vehicle name…" style="flex:1;min-width:180px;background:var(--glass);border:1px solid var(--b);border-radius:var(--rs);padding:9px 14px;color:var(--tp);font-family:var(--fb);font-size:13px;outline:none;" onkeydown="if(event.key==='Enter')addQ()">
+            <button class="btn btn-out" onclick="addQ()">+ Add</button>
+            <button class="btn btn-out" onclick="clrQ()">Clear All</button>
           </div>
         </div>
-        <div class="chart-card">
-          <div class="chart-card-header">
-            <div class="chart-title">📊 Live Sensor Feed</div>
-            <div class="badge badge-active">● STREAMING</div>
-          </div>
-          <canvas id="chart-live-big" height="200"></canvas>
+        <div class="ccard">
+          <div class="ccard-hdr"><div class="ctitle">📊 AO Sensor Feed</div></div>
+          <div class="ch-wrap h240"><canvas id="clive"></canvas></div>
         </div>
       </section>
 
-      <!-- ANALYTICS -->
-      <section class="page-section" id="sec-analytics">
-        <div class="section-header">
-          <div><div class="section-title">Analytics</div><div class="section-sub">Historical trends and emission statistics</div></div>
+      <!-- ═══ ANALYTICS ═══ -->
+      <section class="ps" id="sec-analytics">
+        <div class="sec-hdr">
+          <div><div class="sec-title">Analytics / Insights</div><div class="sec-sub">Historical trends and emission statistics</div></div>
         </div>
-        <div class="charts-grid">
-          <div class="chart-card"><div class="chart-card-header"><div class="chart-title">📅 Daily Statistics</div></div><canvas id="chart-daily" height="200"></canvas></div>
-          <div class="chart-card"><div class="chart-card-header"><div class="chart-title">📆 Weekly Summary</div></div><canvas id="chart-weekly" height="200"></canvas></div>
-        </div>
-        <div class="chart-card" style="margin-bottom:14px"><div class="chart-card-header"><div class="chart-title">📊 Monthly Overview</div></div><canvas id="chart-monthly" height="150"></canvas></div>
-        <div class="chart-card"><div class="chart-card-header"><div class="chart-title">⚡ Hazard Frequency</div></div><canvas id="chart-hazard" height="150"></canvas></div>
-      </section>
-
-      <!-- SENSOR STATUS -->
-      <section class="page-section" id="sec-sensor">
-        <div class="section-header">
-          <div><div class="section-title">Sensor Status</div><div class="section-sub">ESP32 hardware and connectivity details</div></div>
-        </div>
-        <div class="cards-grid">
-          <div class="metric-card"><div class="metric-icon">📡</div><div class="metric-label">ESP32 Online</div><div class="metric-value" id="ss-online">OFFLINE</div></div>
-          <div class="metric-card"><div class="metric-icon">🌡️</div><div class="metric-label">Sensor Init</div><div class="metric-value" id="ss-init">NO</div></div>
-          <div class="metric-card"><div class="metric-icon">⏳</div><div class="metric-label">Warmup Left</div><div class="metric-value" id="ss-warmup" style="font-size:16px">—</div></div>
-          <div class="metric-card"><div class="metric-icon">📶</div><div class="metric-label">RSSI (Signal)</div><div class="metric-value" id="ss-rssi">—</div></div>
-          <div class="metric-card"><div class="metric-icon">🌐</div><div class="metric-label">IP Address</div><div class="metric-value" id="ss-ip" style="font-size:14px">—</div></div>
-          <div class="metric-card"><div class="metric-icon">🕐</div><div class="metric-label">Last Seen</div><div class="metric-value" id="ss-lastseen" style="font-size:14px">—</div></div>
-          <div class="metric-card"><div class="metric-icon">💾</div><div class="metric-label">Firmware</div><div class="metric-value" id="ss-fw">—</div></div>
-        </div>
-      </section>
-
-      <!-- LOGS -->
-      <section class="page-section" id="sec-logs">
-        <div class="section-header">
-          <div><div class="section-title">Activity Logs</div><div class="section-sub">All smoke test records from the database</div></div>
-        </div>
-        <div class="history-card">
-          <div class="history-toolbar">
-            <div style="position:relative;flex:1;min-width:180px;">
-              <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--text-muted);pointer-events:none;">🔍</span>
-              <input type="text" class="history-search" style="width:100%;padding-left:34px;" placeholder="Search test ID, classification..." id="log-search" oninput="filterLogs()">
+        <div class="chart-h" style="margin-bottom:14px;">
+          <div class="ccard">
+            <div class="ccard-hdr">
+              <div class="ctitle">📅 Daily AO Readings (7 Days)</div>
+              <div style="font-size:10px;color:var(--tm);font-family:var(--fm);">avg per day</div>
             </div>
-            <select class="filter-select" id="log-filter-status" onchange="filterLogs()">
+            <div class="ch-wrap h260"><canvas id="c-daily-line"></canvas></div>
+          </div>
+          <div class="ccard">
+            <div class="ccard-hdr"><div class="ctitle">📆 Weekly Classification Trend</div></div>
+            <div class="ch-wrap h260"><canvas id="c-weekly-bar"></canvas></div>
+          </div>
+        </div>
+        <div class="chart-h3">
+          <div class="ccard">
+            <div class="ccard-hdr"><div class="ctitle">⏱ Peak Hazard Hours</div></div>
+            <div class="ch-wrap h200"><canvas id="c-peak"></canvas></div>
+          </div>
+          <div class="ccard">
+            <div class="ccard-hdr"><div class="ctitle">🥧 Classification Split</div></div>
+            <div class="ch-wrap h200"><canvas id="c-donut2"></canvas></div>
+          </div>
+          <div class="ccard">
+            <div class="ccard-hdr"><div class="ctitle">🔬 Sessions per Day</div></div>
+            <div class="ch-wrap h200"><canvas id="c-sessions"></canvas></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ═══ SENSOR STATUS ═══ -->
+      <section class="ps" id="sec-sensor">
+        <div class="sec-hdr"><div><div class="sec-title">Sensor Status</div><div class="sec-sub">ESP32 heartbeat fields</div></div></div>
+        <div class="stat-g">
+          <div class="stat-c"><div class="stat-l">Device ID</div><div class="stat-v" id="ss-dev">—</div></div>
+          <div class="stat-c"><div class="stat-l">Online</div><div class="stat-v" id="ss-on">—</div></div>
+          <div class="stat-c"><div class="stat-l">Initialized</div><div class="stat-v" id="ss-init">—</div></div>
+          <div class="stat-c"><div class="stat-l">Warmup Remaining</div><div class="stat-v" id="ss-wu">—</div></div>
+          <div class="stat-c"><div class="stat-l">RSSI (dBm)</div><div class="stat-v" id="ss-rssi">—</div></div>
+          <div class="stat-c"><div class="stat-l">IP Address</div><div class="stat-v" id="ss-ip">—</div></div>
+          <div class="stat-c"><div class="stat-l">Firmware</div><div class="stat-v" id="ss-fw">—</div></div>
+          <div class="stat-c"><div class="stat-l">Last Heartbeat</div><div class="stat-v" id="ss-seen">—</div></div>
+        </div>
+      </section>
+
+      <!-- ═══ LOGS ═══ -->
+      <section class="ps" id="sec-logs">
+        <div class="sec-hdr"><div><div class="sec-title">Activity Logs</div><div class="sec-sub">All smoke_logs rows from Supabase</div></div></div>
+        <div class="hist-card">
+          <div class="hist-tb">
+            <div style="position:relative;flex:1;min-width:180px;">
+              <span style="position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--tm);pointer-events:none;font-size:12px;">🔍</span>
+              <input type="text" class="hist-in" style="width:100%;" placeholder="Search test ID, classification…" id="log-in" oninput="filterLogs()">
+            </div>
+            <select class="fs" id="lf-sts" onchange="filterLogs()">
               <option value="">All Status</option>
-              <option value="Safe">Safe</option>
+              <option value="Safe">Safe (AIR)</option>
+              <option value="Normal">Normal Smoke</option>
               <option value="Hazardous">Hazardous</option>
             </select>
-            <select class="filter-select" id="log-filter-session" onchange="filterLogs()">
+            <select class="fs" id="lf-sess" onchange="filterLogs()">
               <option value="">All Sessions</option>
               <option value="active">Active</option>
               <option value="completed">Completed</option>
             </select>
-            <button class="btn btn-outline" style="padding:7px 14px;font-size:11px" onclick="exportCSV()">⬇ CSV</button>
+            <button class="btn btn-out" style="padding:7px 14px;font-size:11px" onclick="exportCSV()">⬇ CSV</button>
           </div>
           <div style="overflow-x:auto;">
             <table>
-              <thead>
-                <tr>
-                  <th onclick="sortLogs('test_id')">Test ID</th>
-                  <th onclick="sortLogs('created_at')">Date</th>
-                  <th onclick="sortLogs('created_at')">Time</th>
-                  <th onclick="sortLogs('smoke_value')">Smoke Value</th>
-                  <th onclick="sortLogs('classification')">Classification</th>
-                  <th onclick="sortLogs('status')">Status</th>
-                  <th>LEDs</th><th>Buzzer</th><th>Session</th>
-                </tr>
-              </thead>
-              <tbody id="logs-tbody">
-                <tr><td colspan="9"><div class="empty-state"><div class="empty-state-icon">📋</div><p>No records yet. Start a test session.</p></div></td></tr>
-              </tbody>
+              <thead><tr>
+                <th onclick="sortL('test_id')">Test ID ↕</th>
+                <th onclick="sortL('created_at')">Date ↕</th><th>Time</th>
+                <th onclick="sortL('smoke_value')">AO ↕</th>
+                <th onclick="sortL('classification')">Classification ↕</th>
+                <th onclick="sortL('status')">Status ↕</th>
+                <th>G-LED</th><th>R-LED</th><th>Buzzer</th><th>Override</th><th>Session</th>
+              </tr></thead>
+              <tbody id="ltbody"><tr><td colspan="11"><div class="es"><div class="es-ic">📋</div><p>Loading…</p></div></td></tr></tbody>
             </table>
           </div>
-          <div class="pagination">
-            <span id="log-pagination-info">0 records</span>
-            <div class="page-buttons" id="log-pagination-btns"></div>
+          <div class="pg">
+            <span id="lpg-info">0 records</span>
+            <div class="pg-btns" id="lpg-btns"></div>
           </div>
         </div>
       </section>
 
-      <!-- REPORTS -->
-      <section class="page-section" id="sec-reports">
-        <div class="section-header">
-          <div><div class="section-title">Reports</div><div class="section-sub">Export emission test data as PDF or CSV</div></div>
-        </div>
-        <div class="control-panel">
-          <div class="control-title"><span>📅</span> Report Filters</div>
+      <!-- ═══ REPORTS ═══ -->
+      <section class="ps" id="sec-reports">
+        <div class="sec-hdr"><div><div class="sec-title">Reports</div><div class="sec-sub">Export smoke test data</div></div></div>
+        <div class="cpanel">
+          <div class="cp-title"><span>📅</span> Filter Period</div>
           <div style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:18px;align-items:flex-end;">
-            <div>
-              <div style="font-size:11px;color:var(--text-muted);margin-bottom:6px;">Period</div>
-              <select class="filter-select" id="report-period" onchange="onReportPeriodChange()">
-                <option value="today">Today</option>
-                <option value="week">This Week</option>
-                <option value="month">This Month</option>
-                <option value="custom">Custom Range</option>
-              </select>
-            </div>
-            <div id="report-date-range" style="display:none;gap:10px;align-items:center;">
-              <div><div style="font-size:11px;color:var(--text-muted);margin-bottom:6px;">From</div><input type="date" id="report-from" class="filter-select"></div>
-              <div><div style="font-size:11px;color:var(--text-muted);margin-bottom:6px;">To</div><input type="date" id="report-to" class="filter-select"></div>
+            <div><div style="font-size:11px;color:var(--tm);margin-bottom:6px;">Period</div>
+              <select class="fs" id="rpt-p" onchange="rptPChg()">
+                <option value="today">Today</option><option value="week">This Week</option>
+                <option value="month">This Month</option><option value="custom">Custom Range</option>
+              </select></div>
+            <div id="rpt-d" style="display:none;gap:10px;align-items:center;">
+              <div><div style="font-size:11px;color:var(--tm);margin-bottom:6px;">From</div><input type="date" id="rpt-from" class="fs"></div>
+              <div><div style="font-size:11px;color:var(--tm);margin-bottom:6px;">To</div><input type="date" id="rpt-to" class="fs"></div>
             </div>
           </div>
-          <div class="control-buttons">
-            <button class="btn btn-download" onclick="generatePDF()">📄 Download PDF Report</button>
-            <button class="btn btn-outline"  onclick="exportCSV()">📊 Download CSV</button>
-          </div>
-        </div>
-        <div class="chart-card">
-          <div class="chart-card-header"><div class="chart-title">📋 Report Preview</div></div>
-          <div id="report-preview" style="padding:10px 0;">
-            <div class="empty-state"><div class="empty-state-icon">📋</div><p>Select a period and generate a report</p></div>
+          <div class="btns">
+            <button class="btn btn-dl" onclick="genPDF()">📄 PDF Report</button>
+            <button class="btn btn-out" onclick="exportCSV()">📊 Export CSV</button>
           </div>
         </div>
       </section>
@@ -783,822 +671,798 @@ td.smoke-num{font-family:var(--font-mono);font-weight:600;}
 </div>
 
 <!-- THEME MODAL -->
-<div class="modal-overlay" id="theme-modal">
+<div class="modal" id="tmodal">
   <div class="modal-box">
-    <div class="modal-title">🎨 Theme Customization</div>
-    <div class="theme-grid">
-      <div class="theme-option selected" onclick="applyTheme('dark',this)">
-        <div class="theme-preview" style="background:linear-gradient(135deg,#050d1a,#071428);border:1px solid rgba(0,200,255,0.3)"></div>
-        <div class="theme-name">Dark Mode</div>
-      </div>
-      <div class="theme-option" onclick="applyTheme('light',this)">
-        <div class="theme-preview" style="background:linear-gradient(135deg,#e8f0f8,#d0dff0);border:1px solid rgba(0,100,200,0.3)"></div>
-        <div class="theme-name">Light Mode</div>
-      </div>
-      <div class="theme-option" onclick="applyTheme('cyber-blue',this)">
-        <div class="theme-preview" style="background:linear-gradient(135deg,#000814,#000d1a);border:1px solid rgba(0,255,255,0.4)"></div>
-        <div class="theme-name">Cyber Blue</div>
-      </div>
-      <div class="theme-option" onclick="applyTheme('emerald',this)">
-        <div class="theme-preview" style="background:linear-gradient(135deg,#021a0e,#031f10);border:1px solid rgba(0,255,136,0.4)"></div>
-        <div class="theme-name">Emerald Green</div>
-      </div>
-      <div class="theme-option" onclick="applyTheme('neon-purple',this)">
-        <div class="theme-preview" style="background:linear-gradient(135deg,#0d0014,#110019);border:1px solid rgba(204,68,255,0.4)"></div>
-        <div class="theme-name">Neon Purple</div>
-      </div>
-      <div class="theme-option" onclick="applyTheme('midnight',this)">
-        <div class="theme-preview" style="background:linear-gradient(135deg,#080810,#0c0c18);border:1px solid rgba(136,136,255,0.4)"></div>
-        <div class="theme-name">Midnight</div>
-      </div>
+    <div class="modal-t">🎨 Theme</div>
+    <div class="tg">
+      <div class="to sel" onclick="applyTheme('dark',this)"><div class="tp-prev" style="background:linear-gradient(135deg,#050d1a,#071428);border:1px solid rgba(0,200,255,.3)"></div><div class="tn">Dark</div></div>
+      <div class="to" onclick="applyTheme('light',this)"><div class="tp-prev" style="background:linear-gradient(135deg,#e8f0f8,#d0dff0);border:1px solid rgba(0,100,200,.3)"></div><div class="tn">Light</div></div>
+      <div class="to" onclick="applyTheme('cyber-blue',this)"><div class="tp-prev" style="background:linear-gradient(135deg,#000814,#000d1a);border:1px solid rgba(0,255,255,.4)"></div><div class="tn">Cyber Blue</div></div>
+      <div class="to" onclick="applyTheme('emerald',this)"><div class="tp-prev" style="background:linear-gradient(135deg,#021a0e,#031f10);border:1px solid rgba(0,255,136,.4)"></div><div class="tn">Emerald</div></div>
+      <div class="to" onclick="applyTheme('neon-purple',this)"><div class="tp-prev" style="background:linear-gradient(135deg,#0d0014,#110019);border:1px solid rgba(204,68,255,.4)"></div><div class="tn">Neon Purple</div></div>
+      <div class="to" onclick="applyTheme('midnight',this)"><div class="tp-prev" style="background:linear-gradient(135deg,#080810,#0c0c18);border:1px solid rgba(136,136,255,.4)"></div><div class="tn">Midnight</div></div>
     </div>
-    <div style="margin-top:20px;text-align:right;"><button class="btn btn-outline" onclick="closeThemeModal()">Close</button></div>
+    <div style="margin-top:20px;text-align:right;"><button class="btn btn-out" onclick="closeTheme()">Close</button></div>
   </div>
 </div>
-
-<div id="toast-container"></div>
+<div id="toast-c"></div>
 
 <script>
-// ── CONFIG ────────────────────────────────────────────────────
-const SUPABASE_URL  = 'https://crottwcwsasedjzvydbp.supabase.co';
-const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNyb3R0d2N3c2FzZWRqenZ5ZGJwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkyODcxMzIsImV4cCI6MjA5NDg2MzEzMn0.qQU8eT4pkSIBILkLXy2gkE_4RDpybTxrfRjYD72MiGs';
-const SMOKE_THRESHOLD    = 900;   // matches firmware v1.0.3
-const WARMUP_DURATION_MS = 180000;
+// ══════════════════════════════════════════════════════════════
+//  TROYIKZ Dashboard v1.2.0
+//  Changes:
+//    + Start(S) / Stop(X) session buttons -> Supabase commands
+//    + Override now changes classification/status/LED in records (Option B)
+//      Real smoke_value is always preserved
+//    + Hidden keyboard combo: press same key 3x within 2s -> override
+//      Keys: 0,0,0 = Force AIR | 1,1,1 = Force NORMAL
+//            2,2,2 = Force HAZARDOUS | A,A,A = Back to AUTO
+//    + Session live timer panel
+//    + Override state syncs from real ESP32 data (override field)
+// ══════════════════════════════════════════════════════════════
 
-// ── SUPABASE INIT ─────────────────────────────────────────────
-let sb = null;
-try {
-  sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
-} catch(e) {
-  console.error('Supabase init failed:', e);
-}
+const SB_URL  = 'https://crottwcwsasedjzvydbp.supabase.co';
+const SB_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNyb3R0d2N3c2FzZWRqenZ5ZGJwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkyODcxMzIsImV4cCI6MjA5NDg2MzEzMn0.qQU8eT4pkSIBILkLXy2gkE_4RDpybTxrfRjYD72MiGs';
 
-// ── APP STATE ─────────────────────────────────────────────────
-const state = {
-  testing:false, sessionId:null,
-  smokeValue:0, classification:'—', status:'—',
-  greenLed:false, redLed:false, buzzer:false,
-  esp32Online:false, esp32Data:{},
-  allLogs:[], filteredLogs:[],
-  sortKey:'created_at', sortDir:'desc',
-  page:1, pageSize:15,
-  queue:[],
-  testCounter: parseInt(localStorage.getItem('troyikz_counter')||'0'),
-  totalToday:0, safeToday:0, hazardToday:0,
+const NT  = 320;
+const HT  = 1000;
+
+const CLS_AIR = 'AIR', CLS_NORM = 'NORMAL SMOKE', CLS_HAZ = 'HAZARDOUS SMOKE';
+const STS_SAFE = 'Safe', STS_NORM = 'Normal', STS_HAZ = 'Hazardous';
+
+// What the ESP32 sends for each override tier (classification/status/leds)
+// These mirror exactly what applyCommand() does in the firmware
+const OVR_MAP = {
+  '0': { cls: CLS_AIR,  sts: STS_SAFE, gl: true,  rl: false, buz: false },
+  '1': { cls: CLS_NORM, sts: STS_NORM, gl: true,  rl: false, buz: false },
+  '2': { cls: CLS_HAZ,  sts: STS_HAZ,  gl: false, rl: true,  buz: true  },
 };
 
-// ── WARMUP ────────────────────────────────────────────────────
-const warmupStart = Date.now();
-let warmupDone = false;
+let sb = null;
+try { sb = supabase.createClient(SB_URL, SB_ANON); } catch(e) {}
 
-function startWarmupBanner() {
-  document.getElementById('warmup-banner').classList.add('visible');
-  document.getElementById('btn-start').disabled = true;
-  requestAnimationFrame(warmupBannerTick);
-}
+const S = {
+  allLogs:[], filteredLogs:[], sortKey:'created_at', sortDir:'desc',
+  page:1, pageSize:15, queue:[],
+  warmupDone:false,
+  ovrCmd:null,       // '0','1','2' or null (AUTO)
+  hazCount:0,
+  sessRunning:false,
+  sessId:'',
+  sessStart:null,
+  sessTimerInt:null,
+};
 
-function warmupBannerTick() {
-  if (warmupDone) return;
-  const elapsed   = Date.now() - warmupStart;
-  const remaining = Math.max(0, WARMUP_DURATION_MS - elapsed);
-  const pct       = Math.min(100, (elapsed / WARMUP_DURATION_MS) * 100);
-  const m = String(Math.floor(remaining / 60000)).padStart(2,'0');
-  const s = String(Math.floor((remaining % 60000) / 1000)).padStart(2,'0');
-  const timerEl = document.getElementById('wb-timer');
-  const fillEl  = document.getElementById('wb-fill');
-  if (timerEl) timerEl.textContent = m + ':' + s;
-  if (fillEl)  fillEl.style.width  = pct + '%';
-  activateWarmupStep(pct < 5 ? 1 : pct < 40 ? 2 : pct < 75 ? 3 : 4);
-  remaining <= 0 ? completeWarmup() : requestAnimationFrame(warmupBannerTick);
-}
-
-function activateWarmupStep(active) {
-  for (let i = 1; i <= 4; i++) {
-    const el = document.getElementById('wbs-' + i);
-    if (!el) continue;
-    el.className = i < active ? 'wb-step done' : i === active ? 'wb-step active' : 'wb-step';
-  }
-}
-
-function completeWarmup() {
-  warmupDone = true;
-  activateWarmupStep(5);
-  document.getElementById('warmup-banner').classList.remove('visible');
-  document.getElementById('btn-start').disabled = false;
-  updateSidebarStatus('online', 'Sensor Ready');
-  setHeaderDot('hdr-esp32-dot', 'online');
-  toast('Sensor ready! You can now start testing.', 'success');
-}
-
-function dismissWarmupBanner() {
-  document.getElementById('warmup-banner').classList.remove('visible');
-}
-
-// Sync warmup with actual ESP32 countdown from Supabase
-function syncWarmupFromESP32(remaining) {
-  if (remaining <= 0 && !warmupDone) { completeWarmup(); return; }
-  if (warmupDone) return;
-  const timerEl = document.getElementById('wb-timer');
-  const fillEl  = document.getElementById('wb-fill');
-  if (timerEl) {
-    const m = String(Math.floor(remaining / 60)).padStart(2,'0');
-    const s = String(remaining % 60).padStart(2,'0');
-    timerEl.textContent = m + ':' + s;
-  }
-  if (fillEl) fillEl.style.width = Math.max(0, 100 - (remaining / 180) * 100) + '%';
-}
+const pad = n => String(n).padStart(2,'0');
 
 // ── CLOCK ─────────────────────────────────────────────────────
-function updateClock() {
-  const now = new Date();
-  const days   = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  document.getElementById('hdr-date').textContent =
-    `${days[now.getDay()]}, ${months[now.getMonth()]} ${now.getDate()}, ${now.getFullYear()}`;
-  document.getElementById('hdr-time').textContent =
-    `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
+function tick(){
+  const n=new Date(),days=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],
+    m=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  document.getElementById('hd').textContent=`${days[n.getDay()]}, ${m[n.getMonth()]} ${n.getDate()}, ${n.getFullYear()}`;
+  document.getElementById('ht').textContent=`${pad(n.getHours())}:${pad(n.getMinutes())}:${pad(n.getSeconds())}`;
 }
-setInterval(updateClock, 1000);
-updateClock();
+setInterval(tick,1000); tick();
 
-// ── NAVIGATION ────────────────────────────────────────────────
-function showSection(name, el) {
-  document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  document.getElementById('sec-' + name).classList.add('active');
-  if (el) el.classList.add('active');
-  if (name === 'analytics') setTimeout(() => Object.values(charts).forEach(c => c && c.resize()), 50);
+// ── NAV ───────────────────────────────────────────────────────
+function nav(name,el){
+  document.querySelectorAll('.ps').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('sec-'+name).classList.add('active');
+  if(el) el.classList.add('active');
+  if(name==='analytics') setTimeout(()=>Object.values(C).forEach(c=>c&&c.resize()),100);
 }
 
-// ── STATUS HELPERS ────────────────────────────────────────────
-function updateSidebarStatus(cls, text) {
-  document.getElementById('sidebar-status-dot').className = 'status-dot ' + cls;
-  document.getElementById('sidebar-status-text').textContent = text;
+// ── DOTS ──────────────────────────────────────────────────────
+function dot(id,cls){const e=document.getElementById(id);if(e)e.className='sdot '+cls;}
+function sbSt(cls,txt){dot('sb-dot',cls);document.getElementById('sb-txt').textContent=txt;}
+
+// ── WARMUP ────────────────────────────────────────────────────
+function updWb(sec){
+  if(S.warmupDone){hideWb();return;}
+  if(sec<=0){completeWarmup();return;}
+  document.getElementById('wb').classList.add('on');
+  document.getElementById('wbt').textContent=pad(Math.floor(sec/60))+':'+pad(sec%60);
+  const pct=Math.max(0,100-(sec/180)*100);
+  document.getElementById('wbf').style.width=pct+'%';
+  const s=pct<5?1:pct<40?2:pct<75?3:4;
+  for(let i=1;i<=4;i++){const e=document.getElementById('wbs'+i);if(e)e.className='wb-step '+(i<s?'done':i===s?'active':'');}
 }
-function setHeaderDot(id, cls) {
-  const el = document.getElementById(id);
-  if (el) el.className = 'status-dot ' + cls;
+function completeWarmup(){
+  S.warmupDone=true; hideWb(); sbSt('online','Sensor Ready'); dot('h-esp','online');
+  toast('Sensor warmup complete — ready for testing','ts');
 }
+function hideWb(){document.getElementById('wb').classList.remove('on');}
 
 // ── TOAST ─────────────────────────────────────────────────────
-function toast(msg, type='info', duration=4000) {
-  const icons = {success:'✅',error:'❌',warning:'⚠️',info:'ℹ️'};
-  const c = document.getElementById('toast-container');
-  const t = document.createElement('div');
-  t.className = `toast toast-${type}`;
-  t.innerHTML = `<span class="toast-icon">${icons[type]||'ℹ️'}</span><span>${msg}</span>`;
+function toast(msg,type='ti',ms=4000){
+  const ic={ts:'✅',te:'❌',tw:'⚠️',ti:'ℹ️',tsec:'🔓'};
+  const c=document.getElementById('toast-c'),t=document.createElement('div');
+  t.className=`toast ${type}`;
+  t.innerHTML=`<span class="t-ic">${ic[type]||'ℹ️'}</span><span>${msg}</span>`;
   c.appendChild(t);
-  setTimeout(() => { t.classList.add('fade-out'); setTimeout(() => t.remove(), 350); }, duration);
+  setTimeout(()=>{t.classList.add('fade-out');setTimeout(()=>t.remove(),350);},ms);
 }
 
-// ── TESTING CONTROLS ──────────────────────────────────────────
-function generateTestId() {
-  state.testCounter++;
-  localStorage.setItem('troyikz_counter', state.testCounter);
-  return `TEST-${String(state.testCounter).padStart(4,'0')}`;
-}
+// ══════════════════════════════════════════════════════════════
+//  HIDDEN COMBO SYSTEM
+//  Press same key (0/1/2/A) three times within 2 seconds
+//  Shows subtle dot HUD, then fires override + secret toast
+// ══════════════════════════════════════════════════════════════
+const COMBO = { key:null, count:0, timer:null };
+const COMBO_KEYS = ['0','1','2','a'];
 
-function startTesting() {
-  if (state.testing) return;
-  state.testing   = true;
-  state.sessionId = generateTestId();
-  document.getElementById('btn-start').disabled = true;
-  document.getElementById('btn-stop').disabled  = false;
-  document.getElementById('ctrl-session-id').textContent  = state.sessionId;
-  document.getElementById('card-session').textContent     = 'ACTIVE';
-  document.getElementById('card-session').className      = 'metric-value text-cyan';
-  document.getElementById('card-session-id').textContent = state.sessionId;
-  document.getElementById('card-session-wrap').className = 'metric-card cyan';
-  if (state.queue.length > 0) { state.queue[0].status = 'testing'; renderQueue(); }
-  setBannerTesting();
-  toast(`Session ${state.sessionId} started`, 'success');
-}
+function comboKey(k){
+  k = k.toLowerCase();
+  if(!COMBO_KEYS.includes(k)) return;
 
-function stopTesting() {
-  if (!state.testing) return;
-  state.testing = false;
-  document.getElementById('btn-start').disabled = false;
-  document.getElementById('btn-stop').disabled  = true;
-  document.getElementById('card-session').textContent    = 'COMPLETED';
-  document.getElementById('card-session').className     = 'metric-value text-green';
-  document.getElementById('card-session-wrap').className= 'metric-card safe';
-  if (state.queue.length > 0 && state.queue[0].status === 'testing') {
-    state.queue[0].status = 'done';
-    setTimeout(() => { state.queue.shift(); renderQueue(); }, 1500);
-  }
-  toast(`Session ${state.sessionId} completed`, 'success');
-  state.sessionId = null;
-  setBannerIdle();
-  updateSidebarStatus('online', 'Sensor Ready');
-}
-
-function resetSession() {
-  if (state.testing) stopTesting();
-  document.getElementById('btn-start').disabled = !warmupDone;
-  document.getElementById('btn-stop').disabled  = true;
-  document.getElementById('ctrl-session-id').textContent = 'None';
-  document.getElementById('card-session').textContent    = 'IDLE';
-  document.getElementById('card-session').className     = 'metric-value text-muted';
-  updateDashboard({smoke_value:null,classification:'—',status:'—',green_led:false,red_led:false,buzzer:false});
-  toast('Session reset', 'info');
-}
-
-function clearCurrentSession() {
-  resetSession();
-  document.getElementById('card-smoke-val').textContent      = '—';
-  document.getElementById('card-classification').textContent = '—';
-  document.getElementById('card-status').textContent         = '—';
-  toast('Session cleared', 'info');
-}
-
-// ── DASHBOARD UPDATE ──────────────────────────────────────────
-function updateDashboard(row) {
-  const isHaz  = row.status === 'Hazardous';
-  const isGood = row.status === 'Safe';
-  state.smokeValue     = row.smoke_value;
-  state.classification = row.classification;
-  state.status         = row.status;
-  state.greenLed = !!row.green_led;
-  state.redLed   = !!row.red_led;
-  state.buzzer   = !!row.buzzer;
-
-  const valEl = document.getElementById('banner-smoke-val');
-  valEl.textContent = row.smoke_value ?? '—';
-  valEl.className   = `smoke-val-num ${isHaz?'text-red':isGood?'text-green':'text-muted'}`;
-
-  document.getElementById('card-smoke-val').textContent      = row.smoke_value ?? '—';
-  document.getElementById('card-classification').textContent = row.classification || '—';
-  document.getElementById('card-status').textContent         = row.status || '—';
-  document.getElementById('card-class-wrap').className  = `metric-card ${isHaz?'hazard':isGood?'safe':''}`;
-  document.getElementById('card-status-wrap').className = `metric-card ${isHaz?'hazard':isGood?'safe':''}`;
-
-  const banner = document.getElementById('status-banner');
-  const bIcon  = document.getElementById('banner-icon');
-  const bTitle = document.getElementById('banner-title');
-  const bSub   = document.getElementById('banner-sub');
-
-  if (isHaz) {
-    banner.className = 'status-banner hazardous';
-    bIcon.className  = 'banner-indicator hazardous'; bIcon.textContent = '⚠️';
-    bTitle.textContent = '⚠ HAZARDOUS SMOKE DETECTED';
-    bSub.textContent   = 'Bad Smoke — Immediate action required';
-    updateSidebarStatus('error', 'HAZARD DETECTED');
-    updateNotifBadge(1);
-  } else if (isGood) {
-    banner.className = 'status-banner safe';
-    bIcon.className  = 'banner-indicator safe'; bIcon.textContent = '✅';
-    bTitle.textContent = '✅ SAFE — Good Emission';
-    bSub.textContent   = 'Good Smoke — Non-hazardous reading';
-    updateSidebarStatus('online', 'Testing — Safe');
+  if(COMBO.key === k){
+    COMBO.count++;
+  } else {
+    COMBO.key   = k;
+    COMBO.count = 1;
   }
 
-  updateLEDs(state.greenLed, state.redLed, state.buzzer);
-  pushRealtimeChart(row.smoke_value);
+  // Reset 2-second window
+  clearTimeout(COMBO.timer);
+  COMBO.timer = setTimeout(()=>{ COMBO.key=null; COMBO.count=0; hideComboHud(); }, 2000);
+
+  // Light up dots
+  showComboHud(COMBO.count);
+
+  if(COMBO.count >= 3){
+    // Fire!
+    clearTimeout(COMBO.timer);
+    COMBO.key=null; COMBO.count=0;
+    hideComboHud();
+    const cmd = k==='a' ? 'A' : k;
+    const names={'0':'AIR','1':'NORMAL SMOKE','2':'HAZARDOUS','A':'AUTO'};
+    toast('✓', 'tsec', 1800);
+    sendCmd(cmd);
+  }
 }
 
-function setBannerIdle() {
-  document.getElementById('status-banner').className    = 'status-banner';
-  document.getElementById('banner-icon').textContent    = '💤';
-  document.getElementById('banner-title').textContent   = 'IDLE';
-  document.getElementById('banner-sub').textContent     = 'No active testing session';
-  document.getElementById('banner-smoke-val').textContent = '—';
+function showComboHud(n){
+  const hud = document.getElementById('combo-hud');
+  hud.classList.add('show');
+  for(let i=1;i<=3;i++){
+    const d=document.getElementById('cd'+i);
+    if(d) d.className='combo-dot'+(i<=n?' lit':'');
+  }
 }
-function setBannerTesting() {
-  document.getElementById('banner-icon').textContent  = '🔬';
-  document.getElementById('banner-title').textContent = 'TESTING IN PROGRESS';
-  document.getElementById('banner-sub').textContent   = `Session: ${state.sessionId} — Awaiting sensor data`;
-}
-
-// ── LEDs ──────────────────────────────────────────────────────
-function updateLEDs(green, red, buzzer) {
-  const gb = document.getElementById('led-green-bulb'),  gs = document.getElementById('led-green-state');
-  const rb = document.getElementById('led-red-bulb'),    rs = document.getElementById('led-red-state');
-  const bb = document.getElementById('led-buzzer-bulb'), bs = document.getElementById('led-buzzer-state');
-  if (green) { gb.className='led-bulb green-on'; gs.className='led-state on';    gs.textContent='ON';      }
-  else       { gb.className='led-bulb';           gs.className='led-state off';   gs.textContent='OFF';     }
-  if (red)   { rb.className='led-bulb red-on';   rs.className='led-state alert'; rs.textContent='ALERT';   }
-  else       { rb.className='led-bulb';           rs.className='led-state off';   rs.textContent='OFF';     }
-  if (buzzer){ bb.className='led-bulb buzzer-on'; bs.className='led-state buzz';  bs.textContent='BUZZING'; }
-  else       { bb.className='led-bulb';           bs.className='led-state off';   bs.textContent='SILENT';  }
+function hideComboHud(){
+  document.getElementById('combo-hud').classList.remove('show');
+  for(let i=1;i<=3;i++){const d=document.getElementById('cd'+i);if(d)d.className='combo-dot';}
 }
 
-function updateNotifBadge(count) {
-  const nb = document.getElementById('hdr-notif-badge');
-  if (nb) nb.textContent = count;
-  const lb = document.getElementById('log-badge');
-  if (lb) lb.textContent = state.allLogs.length;
+// Listen for keypresses globally (won't fire when typing in inputs)
+document.addEventListener('keydown', e => {
+  if(['INPUT','TEXTAREA','SELECT'].includes(e.target.tagName)) return;
+  comboKey(e.key);
+});
+
+// ── SESSION TIMER ─────────────────────────────────────────────
+function startSessTimer(id){
+  S.sessRunning=true; S.sessId=id; S.sessStart=Date.now();
+  clearInterval(S.sessTimerInt);
+  const panel=document.getElementById('sess-panel');
+  const idLbl=document.getElementById('sess-id-lbl');
+  const statLbl=document.getElementById('sess-state');
+  if(panel){panel.className='sess-panel running';}
+  if(idLbl){idLbl.textContent=id;idLbl.className='sess-id running';}
+  if(statLbl){statLbl.textContent='RUNNING';statLbl.className='sess-state running';}
+  S.sessTimerInt=setInterval(()=>{
+    const el=Math.floor((Date.now()-S.sessStart)/1000);
+    const t=document.getElementById('sess-timer');
+    if(t) t.textContent=pad(Math.floor(el/60))+':'+pad(el%60);
+  },1000);
+  // update metric card
+  const ms=document.getElementById('mc-sess'),msb=document.getElementById('mc-sess-sub');
+  if(ms){ms.textContent=id;ms.className='mc-val tc';}
+  if(msb) msb.textContent='● Active';
+}
+
+function stopSessTimer(){
+  S.sessRunning=false;
+  clearInterval(S.sessTimerInt);
+  const panel=document.getElementById('sess-panel');
+  const statLbl=document.getElementById('sess-state');
+  if(panel) panel.className='sess-panel';
+  if(statLbl){statLbl.textContent='STOPPED';statLbl.className='sess-state stopped';}
+  const ms=document.getElementById('mc-sess'),msb=document.getElementById('mc-sess-sub');
+  if(ms) ms.className='mc-val tg2';
+  if(msb) msb.textContent='Completed';
+}
+
+// ── SEND COMMAND ──────────────────────────────────────────────
+// All commands go via Supabase → ESP32 polls → executes → marks done
+// For override (0/1/2/A): also immediately updates dashboard display
+// For session (S/X): updates session panel optimistically
+async function sendCmd(cmd){
+  if(!sb){toast('Supabase not connected','te');return;}
+
+  const labels={
+    '0':'Force AIR','1':'Force NORMAL SMOKE','2':'Force HAZARDOUS',
+    'A':'Back to AUTO','S':'Start Session','X':'Stop Session'
+  };
+
+  // --- Optimistic UI updates ---
+  if(cmd==='0'||cmd==='1'||cmd==='2'){
+    S.ovrCmd=cmd;
+    updOvrLabel();
+    // If we have a recent row, re-render it with override tier applied
+    if(S.allLogs.length>0) applyRow(S.allLogs[0], true);
+    updToday(); rebuildAnalytics(S.allLogs);
+    const ackEl=document.getElementById('ovr-ack');
+    if(ackEl){ackEl.style.display='inline';setTimeout(()=>ackEl.style.display='none',5000);}
+  } else if(cmd==='A'){
+    S.ovrCmd=null;
+    updOvrLabel();
+    if(S.allLogs.length>0) applyRow(S.allLogs[0], false);
+    updToday(); rebuildAnalytics(S.allLogs);
+    const ackEl=document.getElementById('ovr-ack');
+    if(ackEl){ackEl.style.display='inline';setTimeout(()=>ackEl.style.display='none',5000);}
+  } else if(cmd==='S'){
+    const ack=document.getElementById('sess-ack');
+    if(ack) ack.textContent='Sending start to ESP32…';
+    setTimeout(()=>{if(ack)ack.textContent='';},5000);
+  } else if(cmd==='X'){
+    const ack=document.getElementById('sess-ack');
+    if(ack) ack.textContent='Sending stop to ESP32…';
+    setTimeout(()=>{if(ack)ack.textContent='';},5000);
+  }
+
+  const {error}=await sb.from('commands').insert({command:cmd});
+  if(error) toast('Failed to send command: '+error.message,'te');
+  else {
+    // For override/session commands show a small subtle check; for S/X show brief confirmation
+    if(cmd==='S'||cmd==='X'){
+      toast(cmd==='S'?'Session start sent':'Session stop sent','ti',2500);
+    } else {
+      toast('✓','tsec',1500);
+    }
+  }
+}
+
+function updOvrLabel(){
+  const labels={'0':'Force AIR','1':'Force NORMAL SMOKE','2':'Force HAZARDOUS'};
+  const ovrEl=document.getElementById('ovr-lbl');
+  if(!ovrEl) return;
+  if(S.ovrCmd){
+    ovrEl.textContent=labels[S.ovrCmd];
+    ovrEl.className='ovr-val '+(S.ovrCmd==='2'?'tr2':S.ovrCmd==='1'?'ty':'tc');
+  } else {
+    ovrEl.textContent='AUTO (sensor-driven)';
+    ovrEl.className='ovr-val tc';
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+//  APPLY LOG ROW
+//  Option B: real smoke_value preserved; when override is active
+//  classification/status/LED fields in the display reflect the
+//  forced tier (matching exactly what ESP32 logs to Supabase)
+// ══════════════════════════════════════════════════════════════
+function applyRow(row, forceOvr){
+  const ao  = row.smoke_value;
+  // Determine effective tier for display
+  // If override is active, override the classification/status/LEDs
+  let cls, sts, gl, rl, buz;
+  const activeOvr = S.ovrCmd; // current dashboard override state
+
+  if(activeOvr && OVR_MAP[activeOvr]){
+    const om = OVR_MAP[activeOvr];
+    cls=om.cls; sts=om.sts; gl=om.gl; rl=om.rl; buz=om.buz;
+  } else {
+    cls=row.classification; sts=row.status;
+    gl=!!row.green_led; rl=!!row.red_led; buz=!!row.buzzer;
+  }
+  const ovr = !!row.override;
+
+  // AO display — always real value
+  const aoEl=document.getElementById('b-ao'), mcAo=document.getElementById('mc-ao');
+  if(aoEl) aoEl.textContent=ao??'—';
+  if(mcAo) mcAo.textContent=ao??'—';
+  const aoCol=sts===STS_HAZ?'var(--red)':sts===STS_NORM?'var(--yellow)':'var(--cyan)';
+  if(aoEl) aoEl.style.color=aoCol;
+
+  // Classification / status cards
+  document.getElementById('mc-cls').textContent=cls??'—';
+  document.getElementById('mc-sts').textContent=sts??'—';
+  const cc=document.getElementById('mc-cls-c'),sc=document.getElementById('mc-sts-c');
+  const cls2=sts===STS_HAZ?'haz':sts===STS_NORM?'norm':sts===STS_SAFE?'safe':'';
+  if(cc) cc.className='mc '+cls2;
+  if(sc) sc.className='mc '+cls2;
+
+  // Session tracking — detect start/stop from incoming data
+  if(row.test_id){
+    if(row.session_status==='active'){
+      if(!S.sessRunning || S.sessId!==row.test_id) startSessTimer(row.test_id);
+    } else if(row.session_status==='completed'){
+      if(S.sessRunning) stopSessTimer();
+      const ms=document.getElementById('mc-sess'),msb=document.getElementById('mc-sess-sub');
+      if(ms){ms.textContent=row.test_id;ms.className='mc-val tg2';}
+      if(msb) msb.textContent='Completed';
+      const idLbl=document.getElementById('sess-id-lbl');
+      if(idLbl) idLbl.textContent=row.test_id;
+    }
+  }
+
+  // Banner & LEDs
+  updBanner(ao, cls, sts, ovr || !!activeOvr);
+  updLEDs(gl, rl, buz, cls);
+
+  // Chart always gets real AO
+  pushChart(ao);
+
+  // Hazard alerts
+  if(sts===STS_HAZ){
+    S.hazCount++;
+    const nb=document.getElementById('hnotif');
+    if(nb) nb.textContent=S.hazCount;
+    toast(`HAZARDOUS: ${row.test_id} — AO: ${ao}`,'te',7000);
+    sbSt('err','HAZARD DETECTED');
+  } else if(sts===STS_NORM){
+    sbSt('warn','Normal Smoke');
+  } else if(sts===STS_SAFE){
+    sbSt('online','Air — Clear');
+  }
+}
+
+function updBanner(ao,cls,sts,ovr){
+  const b=document.getElementById('banner'),ic=document.getElementById('b-ic'),
+    tl=document.getElementById('b-title'),sb2=document.getElementById('b-sub'),ae=document.getElementById('b-ao');
+  ae.textContent=ao??'—';
+  if(sts===STS_HAZ){
+    b.className='banner s-haz';ic.className='ban-ic s-haz';ic.textContent='⚠️';
+    tl.textContent='HAZARDOUS SMOKE DETECTED';tl.style.color='var(--red)';
+    sb2.textContent='Red LED ON · Buzzer ON · Immediate action required'+(ovr?' · [OVERRIDE]':'');
+    ae.style.color='var(--red)';
+  } else if(sts===STS_NORM){
+    b.className='banner s-norm';ic.className='ban-ic s-norm';ic.textContent='💨';
+    tl.textContent='NORMAL SMOKE DETECTED';tl.style.color='var(--yellow)';
+    sb2.textContent='Green LED blinking · Buzzer OFF'+(ovr?' · [OVERRIDE]':'');
+    ae.style.color='var(--yellow)';
+  } else if(sts===STS_SAFE){
+    b.className='banner s-air';ic.className='ban-ic s-air';ic.textContent='✅';
+    tl.textContent='AIR — CLEAR';tl.style.color='var(--cyan)';
+    sb2.textContent='Green LED steady · No smoke detected'+(ovr?' · [OVERRIDE]':'');
+    ae.style.color='var(--cyan)';
+  }
+}
+
+function updLEDs(gl,rl,buz,cls){
+  const gb=document.getElementById('led-g'),gs=document.getElementById('led-gs'),gh=document.getElementById('led-gh');
+  const rb=document.getElementById('led-r'),rs=document.getElementById('led-rs');
+  const bb2=document.getElementById('led-b'),bs=document.getElementById('led-bs');
+  if(gl&&cls===CLS_NORM){gb.className='led-bulb gb';gs.className='led-st ls-blink';gs.textContent='BLINKING';gh.textContent='Normal Smoke — 100ms';}
+  else if(gl){gb.className='led-bulb gs';gs.className='led-st ls-on';gs.textContent='ON (STEADY)';gh.textContent='Air — steady on';}
+  else{gb.className='led-bulb';gs.className='led-st ls-off';gs.textContent='OFF';gh.textContent='—';}
+  if(rl){rb.className='led-bulb rs';rs.className='led-st ls-alert';rs.textContent='ALERT';}
+  else{rb.className='led-bulb';rs.className='led-st ls-off';rs.textContent='OFF';}
+  if(buz){bb2.className='led-bulb buz';bs.className='led-st ls-buz';bs.textContent='BUZZING';}
+  else{bb2.className='led-bulb';bs.className='led-st ls-off';bs.textContent='SILENT';}
+}
+
+// Track last known heartbeat time to detect stale ESP32 status
+let lastHeartbeatTime = null;
+
+function checkEspStaleness(){
+  if(!lastHeartbeatTime) return;
+  const age = (Date.now() - lastHeartbeatTime) / 1000;
+  if(age > 10){
+    // Heartbeat is stale — ESP32 is likely offline
+    dot('h-esp','err');
+    const ev=document.getElementById('mc-esp');
+    if(ev){ev.textContent='OFFLINE';ev.className='mc-val tr2';}
+    const rv=document.getElementById('mc-rssi');
+    if(rv) rv.textContent='No signal';
+    const oe=document.getElementById('ss-on');
+    if(oe){oe.textContent='OFFLINE';oe.className='stat-v off';}
+    sbSt('err','ESP32 Offline');
+  }
+}
+// Check every 5 seconds
+setInterval(checkEspStaleness, 5000);
+
+function appSS(d){
+  if(!d) return;
+  // Record when we last got a real heartbeat
+  if(d.last_seen){
+    const hbTime = new Date(d.last_seen).getTime();
+    const age = (Date.now() - hbTime) / 1000;
+    // Only treat as online if heartbeat is fresh (within 10s)
+    if(age > 10){
+      d = {...d, is_online: false};
+    } else {
+      lastHeartbeatTime = hbTime;
+    }
+  }
+  if(typeof d.warmup_remaining==='number'){
+    if(d.warmup_remaining<=0||d.is_initialized){if(!S.warmupDone)completeWarmup();}
+    else updWb(d.warmup_remaining);
+  }
+  dot('h-esp',d.is_online?'online':'err');
+  const ev=document.getElementById('mc-esp');
+  if(ev){ev.textContent=d.is_online?'ONLINE':'OFFLINE';ev.className='mc-val '+(d.is_online?'tg2':'tr2');}
+  const rv=document.getElementById('mc-rssi');
+  if(rv) rv.textContent=d.rssi&&d.is_online?`RSSI: ${d.rssi} dBm`:'No signal';
+  const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v??'—';};
+  set('ss-dev',d.device_id);
+  const oe=document.getElementById('ss-on');
+  if(oe){oe.textContent=d.is_online?'ONLINE':'OFFLINE';oe.className='stat-v '+(d.is_online?'on':'off');}
+  set('ss-init',d.is_initialized?'YES':'NO');
+  set('ss-rssi',d.rssi&&d.is_online?`${d.rssi} dBm`:'—');
+  set('ss-ip',d.ip_address);
+  set('ss-fw',d.firmware_ver);
+  const rem=d.warmup_remaining;
+  set('ss-wu',(rem>0&&!d.is_initialized)?`${pad(Math.floor(rem/60))}:${pad(rem%60)}`:(d.is_initialized?'READY':'—'));
+  if(d.last_seen){const t=new Date(d.last_seen);set('ss-seen',`${t.toLocaleDateString()} ${t.toLocaleTimeString()}`);}
+  const fw=document.getElementById('b-fw');if(fw&&d.firmware_ver)fw.textContent=`FW: ${d.firmware_ver}`;
+  if(!d.is_online) sbSt('err','ESP32 Offline');
+  else if(!S.warmupDone) sbSt('warn','Warming Up…');
+  else sbSt('online','Sensor Ready');
 }
 
 // ── CHARTS ────────────────────────────────────────────────────
-const charts = {};
+const C={};
+Chart.defaults.color='#7ab8d4';
+Chart.defaults.borderColor='rgba(0,200,255,0.08)';
+Chart.defaults.font.family="'Exo 2',sans-serif";
+const gridOpts={x:{grid:{color:'rgba(0,200,255,.05)'}},y:{grid:{color:'rgba(0,200,255,.05)'}}};
+const mkLineOpts=(yMax)=>({responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,labels:{boxWidth:10,padding:10}}},scales:{...gridOpts,y:{...gridOpts.y,min:0,max:yMax||1023}},animation:{duration:150}});
+function last7(){return Array.from({length:7},(_,i)=>{const d=new Date();d.setDate(d.getDate()-(6-i));return `${d.getMonth()+1}/${d.getDate()}`;});}
+function last24(){return Array.from({length:24},(_,i)=>pad(i)+':00');}
 
-function initCharts() {
-  Chart.defaults.color       = '#7ab8d4';
-  Chart.defaults.borderColor = 'rgba(0,200,255,0.1)';
-  Chart.defaults.font.family = 'Exo 2, sans-serif';
+function initCharts(){
+  C.rt=new Chart(document.getElementById('crt'),{type:'line',data:{labels:[],datasets:[
+    {label:'AO',data:[],borderColor:'#00c8ff',backgroundColor:'rgba(0,200,255,.07)',borderWidth:2,fill:true,tension:.4,pointRadius:2},
+    {label:`Normal≥${NT}`,data:[],borderColor:'rgba(255,204,0,.65)',borderDash:[4,3],borderWidth:1.5,fill:false,pointRadius:0},
+    {label:`Hazard≥${HT}`,data:[],borderColor:'rgba(255,51,85,.65)',borderDash:[6,4],borderWidth:1.5,fill:false,pointRadius:0}
+  ]},options:mkLineOpts(1023)});
 
-  charts.realtime = new Chart(document.getElementById('chart-realtime'), {
-    type:'line',
-    data:{ labels:[], datasets:[{
-      label:'Smoke Value', data:[], borderColor:'#00c8ff',
-      backgroundColor:'rgba(0,200,255,0.07)', borderWidth:2, fill:true, tension:0.4,
-      pointRadius:3, pointBackgroundColor:'#00c8ff'
-    },{
-      label:'Threshold', data:[], borderColor:'rgba(255,51,85,0.6)',
-      borderDash:[6,4], borderWidth:1.5, fill:false, pointRadius:0
-    }]},
-    options:{ responsive:true, maintainAspectRatio:false,
-      plugins:{ legend:{display:true}, tooltip:{mode:'index',intersect:false} },
-      scales:{ x:{grid:{color:'rgba(0,200,255,0.05)'},ticks:{maxTicksLimit:10}},
-               y:{grid:{color:'rgba(0,200,255,0.05)'},min:0,max:1023,title:{display:true,text:'ADC Value'}} },
-      animation:{duration:300} }
-  });
+  C.donut=new Chart(document.getElementById('cdonut'),{type:'doughnut',
+    data:{labels:['AIR (Safe)','NORMAL SMOKE','HAZARDOUS'],datasets:[{data:[0,0,0],
+      backgroundColor:['rgba(0,200,255,.65)','rgba(255,204,0,.65)','rgba(255,51,85,.65)'],
+      borderColor:['rgba(0,200,255,.3)','rgba(255,204,0,.3)','rgba(255,51,85,.3)'],borderWidth:1}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{boxWidth:10,padding:12}}},cutout:'65%'}});
 
-  charts.donut = new Chart(document.getElementById('chart-donut'), {
-    type:'doughnut',
-    data:{ labels:['Good Smoke (Safe)','Bad Smoke (Hazardous)'],
-      datasets:[{ data:[0,0], backgroundColor:['rgba(0,255,136,0.7)','rgba(255,51,85,0.7)'],
-        borderColor:['rgba(0,255,136,0.3)','rgba(255,51,85,0.3)'], borderWidth:1 }]},
-    options:{ responsive:true, maintainAspectRatio:false,
-      plugins:{ legend:{position:'bottom',labels:{boxWidth:12,padding:14}} }, cutout:'65%' }
-  });
+  C.live=new Chart(document.getElementById('clive'),{type:'line',data:{labels:[],datasets:[
+    {label:'AO',data:[],borderColor:'#00c8ff',backgroundColor:'rgba(0,200,255,.05)',borderWidth:2,fill:true,tension:.4,pointRadius:2},
+    {label:`Normal≥${NT}`,data:[],borderColor:'rgba(255,204,0,.65)',borderDash:[4,3],borderWidth:1.5,fill:false,pointRadius:0},
+    {label:`Hazard≥${HT}`,data:[],borderColor:'rgba(255,51,85,.65)',borderDash:[6,4],borderWidth:1.5,fill:false,pointRadius:0}
+  ]},options:mkLineOpts(1023)});
 
-  charts.liveBig = new Chart(document.getElementById('chart-live-big'), {
-    type:'line',
-    data:{ labels:[], datasets:[
-      { label:'Smoke Value', data:[], borderColor:'#00c8ff', backgroundColor:'rgba(0,200,255,0.05)', borderWidth:2, fill:true, tension:0.4, pointRadius:2 },
-      { label:'Threshold',   data:[], borderColor:'rgba(255,51,85,0.6)', borderDash:[6,4], borderWidth:1.5, fill:false, pointRadius:0 }
+  const l7=last7();
+  C.dailyLine=new Chart(document.getElementById('c-daily-line'),{type:'line',
+    data:{labels:l7,datasets:[
+      {label:'Avg AO',data:Array(7).fill(0),borderColor:'#00c8ff',backgroundColor:'rgba(0,200,255,.1)',borderWidth:2.5,fill:true,tension:.4,pointRadius:4,pointBackgroundColor:'#00c8ff'},
+      {label:`Normal≥${NT}`,data:Array(7).fill(NT),borderColor:'rgba(255,204,0,.6)',borderDash:[4,3],borderWidth:1.5,fill:false,pointRadius:0},
+      {label:`Hazard≥${HT}`,data:Array(7).fill(HT),borderColor:'rgba(255,51,85,.6)',borderDash:[6,4],borderWidth:1.5,fill:false,pointRadius:0}
     ]},
-    options:{ responsive:true, maintainAspectRatio:false,
-      plugins:{legend:{display:true}},
-      scales:{ x:{grid:{color:'rgba(0,200,255,0.05)'}}, y:{min:0,max:1023,grid:{color:'rgba(0,200,255,0.05)'}} },
-      animation:{duration:200} }
-  });
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,labels:{boxWidth:10,padding:10}}},
+      scales:{x:{grid:{color:'rgba(0,200,255,.05)'},ticks:{font:{size:11}}},y:{grid:{color:'rgba(0,200,255,.05)'},min:0,max:1023,title:{display:true,text:'Avg AO Value'}}},animation:{duration:400}}});
 
-  charts.daily = new Chart(document.getElementById('chart-daily'), {
-    type:'bar',
-    data:{ labels:getLast7Days(), datasets:[
-      { label:'Safe',      data:Array(7).fill(0), backgroundColor:'rgba(0,255,136,0.5)', borderColor:'rgba(0,255,136,0.8)', borderWidth:1 },
-      { label:'Hazardous', data:Array(7).fill(0), backgroundColor:'rgba(255,51,85,0.5)',  borderColor:'rgba(255,51,85,0.8)',  borderWidth:1 }
+  C.weekBar=new Chart(document.getElementById('c-weekly-bar'),{type:'bar',
+    data:{labels:l7,datasets:[
+      {label:'AIR / Safe',data:Array(7).fill(0),backgroundColor:'rgba(0,200,255,.5)',borderColor:'rgba(0,200,255,.8)',borderWidth:1},
+      {label:'NORMAL SMOKE',data:Array(7).fill(0),backgroundColor:'rgba(255,204,0,.5)',borderColor:'rgba(255,204,0,.8)',borderWidth:1},
+      {label:'HAZARDOUS',data:Array(7).fill(0),backgroundColor:'rgba(255,51,85,.5)',borderColor:'rgba(255,51,85,.8)',borderWidth:1}
     ]},
-    options:{ responsive:true, maintainAspectRatio:false,
-      plugins:{legend:{position:'top'}},
-      scales:{ x:{grid:{color:'rgba(0,200,255,0.05)'}}, y:{grid:{color:'rgba(0,200,255,0.05)'},beginAtZero:true} } }
-  });
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top',labels:{boxWidth:10,padding:10}}},
+      scales:{x:{grid:{color:'rgba(0,200,255,.05)'},ticks:{font:{size:11}}},y:{grid:{color:'rgba(0,200,255,.05)'},beginAtZero:true,title:{display:true,text:'Count'}}},animation:{duration:400}}});
 
-  charts.weekly = new Chart(document.getElementById('chart-weekly'), {
-    type:'bar',
-    data:{ labels:['4 weeks ago','3 weeks ago','2 weeks ago','Last week'], datasets:[
-      { label:'Safe',      data:[0,0,0,0], backgroundColor:'rgba(0,255,136,0.4)' },
-      { label:'Hazardous', data:[0,0,0,0], backgroundColor:'rgba(255,51,85,0.4)' }
-    ]},
-    options:{ responsive:true, maintainAspectRatio:false,
-      scales:{ x:{grid:{color:'rgba(0,200,255,0.05)'}}, y:{grid:{color:'rgba(0,200,255,0.05)'},beginAtZero:true} } }
-  });
+  C.peak=new Chart(document.getElementById('c-peak'),{type:'bar',
+    data:{labels:last24(),datasets:[{label:'Hazard Events',data:Array(24).fill(0),backgroundColor:'rgba(255,51,85,.5)',borderColor:'rgba(255,51,85,.8)',borderWidth:1}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+      scales:{x:{grid:{color:'rgba(0,200,255,.05)'},ticks:{maxTicksLimit:12,font:{size:10}}},y:{grid:{color:'rgba(0,200,255,.05)'},beginAtZero:true}},animation:{duration:400}}});
 
-  const monthNames=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  charts.monthly = new Chart(document.getElementById('chart-monthly'), {
-    type:'line',
-    data:{ labels:monthNames, datasets:[
-      { label:'Safe',      data:Array(12).fill(0), borderColor:'rgba(0,255,136,0.8)', fill:false, tension:0.4 },
-      { label:'Hazardous', data:Array(12).fill(0), borderColor:'rgba(255,51,85,0.8)', fill:false, tension:0.4 }
-    ]},
-    options:{ responsive:true, maintainAspectRatio:false,
-      scales:{ x:{grid:{color:'rgba(0,200,255,0.05)'}}, y:{grid:{color:'rgba(0,200,255,0.05)'},beginAtZero:true} } }
-  });
+  C.donut2=new Chart(document.getElementById('c-donut2'),{type:'doughnut',
+    data:{labels:['AIR (Safe)','NORMAL SMOKE','HAZARDOUS'],datasets:[{data:[0,0,0],
+      backgroundColor:['rgba(0,200,255,.65)','rgba(255,204,0,.65)','rgba(255,51,85,.65)'],
+      borderColor:['rgba(0,200,255,.3)','rgba(255,204,0,.3)','rgba(255,51,85,.3)'],borderWidth:1}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{boxWidth:10,padding:8,font:{size:10}}}},cutout:'62%'}});
 
-  charts.hazard = new Chart(document.getElementById('chart-hazard'), {
-    type:'bar',
-    data:{ labels:getLast7Days(), datasets:[{ label:'Hazard Events', data:Array(7).fill(0),
-      backgroundColor:'rgba(255,51,85,0.5)', borderColor:'rgba(255,51,85,0.8)', borderWidth:1 }] },
-    options:{ responsive:true, maintainAspectRatio:false,
-      scales:{ x:{grid:{color:'rgba(0,200,255,0.05)'}}, y:{grid:{color:'rgba(0,200,255,0.05)'},beginAtZero:true} } }
-  });
+  C.sessions=new Chart(document.getElementById('c-sessions'),{type:'bar',
+    data:{labels:l7,datasets:[{label:'Completed Sessions',data:Array(7).fill(0),backgroundColor:'rgba(0,200,255,.45)',borderColor:'rgba(0,200,255,.7)',borderWidth:1}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+      scales:{x:{grid:{color:'rgba(0,200,255,.05)'},ticks:{font:{size:10}}},y:{grid:{color:'rgba(0,200,255,.05)'},beginAtZero:true,ticks:{stepSize:1}}},animation:{duration:400}}});
 }
 
-function getLast7Days() {
-  return Array.from({length:7},(_,i)=>{
-    const d=new Date(); d.setDate(d.getDate()-(6-i)); return `${d.getMonth()+1}/${d.getDate()}`;
-  });
-}
-
-const MAX_REALTIME_POINTS = 60;
-function pushRealtimeChart(val) {
-  if (val === null || val === undefined) return;
-  const now = new Date();
-  const label = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
-  [charts.realtime, charts.liveBig].forEach(c => {
-    if (!c) return;
-    c.data.labels.push(label);
-    c.data.datasets[0].data.push(val);
-    if (c.data.datasets[1]) c.data.datasets[1].data.push(SMOKE_THRESHOLD);
-    if (c.data.labels.length > MAX_REALTIME_POINTS) {
-      c.data.labels.shift();
-      c.data.datasets.forEach(ds => ds.data.shift());
-    }
+const MAX_RT=60;
+function pushChart(ao){
+  if(ao===null||ao===undefined) return;
+  const t=new Date(),lbl=`${pad(t.getHours())}:${pad(t.getMinutes())}:${pad(t.getSeconds())}`;
+  [C.rt,C.live].forEach(c=>{
+    if(!c) return;
+    c.data.labels.push(lbl);
+    c.data.datasets[0].data.push(ao);
+    if(c.data.datasets[1]) c.data.datasets[1].data.push(NT);
+    if(c.data.datasets[2]) c.data.datasets[2].data.push(HT);
+    if(c.data.labels.length>MAX_RT){c.data.labels.shift();c.data.datasets.forEach(d=>d.data.shift());}
     c.update('none');
   });
 }
 
-function updateDonutChart() {
-  if (!charts.donut) return;
-  charts.donut.data.datasets[0].data = [
-    state.allLogs.filter(r=>r.status==='Safe').length,
-    state.allLogs.filter(r=>r.status==='Hazardous').length
-  ];
-  charts.donut.update();
-}
-
-function rebuildAnalyticsCharts(logs) {
-  if (!charts.daily) return;
-  const labels=getLast7Days(), safeCounts=Array(7).fill(0), hazCounts=Array(7).fill(0);
-  const today=new Date();
-  logs.forEach(log => {
+function rebuildAnalytics(logs){
+  const l7=last7(),today=new Date();
+  const avgAO=Array(7).fill(0),counts=Array(7).fill(0),sums=Array(7).fill(0);
+  const sc=Array(7).fill(0),nc=Array(7).fill(0),hc=Array(7).fill(0);
+  const hourHaz=Array(24).fill(0);
+  const sessDone=new Set();
+  logs.forEach(log=>{
     const d=new Date(log.created_at);
     for(let i=0;i<7;i++){
-      const ref=new Date(today); ref.setDate(today.getDate()-(6-i));
+      const ref=new Date(today);ref.setDate(today.getDate()-(6-i));
       if(d.toDateString()===ref.toDateString()){
-        if(log.status==='Safe') safeCounts[i]++; else hazCounts[i]++;
+        sums[i]+=(log.smoke_value||0);counts[i]++;
+        if(log.status===STS_HAZ)hc[i]++;
+        else if(log.status===STS_NORM)nc[i]++;
+        else sc[i]++;
       }
     }
+    if(log.status===STS_HAZ) hourHaz[d.getHours()]++;
+    if(log.session_status==='completed') sessDone.add(log.test_id+'_'+d.toDateString());
   });
-  charts.daily.data.labels=labels;
-  charts.daily.data.datasets[0].data=safeCounts;
-  charts.daily.data.datasets[1].data=hazCounts;
-  charts.daily.update();
-  charts.hazard.data.labels=labels;
-  charts.hazard.data.datasets[0].data=hazCounts;
-  charts.hazard.update();
+  for(let i=0;i<7;i++) avgAO[i]=counts[i]>0?Math.round(sums[i]/counts[i]):0;
+  const sessPerDay=Array(7).fill(0);
+  sessDone.forEach(k=>{
+    const ds=k.split('_').slice(1).join('_');
+    for(let i=0;i<7;i++){const ref=new Date(today);ref.setDate(today.getDate()-(6-i));if(ref.toDateString()===ds)sessPerDay[i]++;}
+  });
+  if(C.dailyLine){C.dailyLine.data.labels=l7;C.dailyLine.data.datasets[0].data=avgAO;C.dailyLine.update();}
+  if(C.weekBar){C.weekBar.data.labels=l7;C.weekBar.data.datasets[0].data=sc;C.weekBar.data.datasets[1].data=nc;C.weekBar.data.datasets[2].data=hc;C.weekBar.update();}
+  if(C.peak){C.peak.data.datasets[0].data=hourHaz;C.peak.update();}
+  if(C.sessions){C.sessions.data.labels=l7;C.sessions.data.datasets[0].data=sessPerDay;C.sessions.update();}
+  const safe=logs.filter(r=>r.status===STS_SAFE).length;
+  const norm=logs.filter(r=>r.status===STS_NORM).length;
+  const haz=logs.filter(r=>r.status===STS_HAZ).length;
+  [C.donut,C.donut2].forEach(c=>{if(c){c.data.datasets[0].data=[safe,norm,haz];c.update();}});
 }
 
-function switchChartView(view, el) {
-  document.querySelectorAll('.chart-tab').forEach(t=>t.classList.remove('active'));
-  el.classList.add('active');
+function updToday(){
+  const today=new Date().toDateString();
+  const tl=S.allLogs.filter(r=>new Date(r.created_at).toDateString()===today);
+  const s=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
+  // Always use real stored status values — ESP32 already writes the correct
+  // overridden classification/status into each row, so these counts are accurate
+  s('mc-safe', tl.filter(r=>r.status===STS_SAFE).length);
+  s('mc-norm',  tl.filter(r=>r.status===STS_NORM).length);
+  s('mc-haz',   tl.filter(r=>r.status===STS_HAZ).length);
 }
 
-// ── REALTIME SUBSCRIPTION ─────────────────────────────────────
-function startRealtimeSubscription() {
-  if (!sb) {
-    toast('Supabase not configured — check credentials', 'error');
-    setHeaderDot('hdr-supabase-dot','error');
-    document.getElementById('conn-status-bar').classList.add('visible');
+// ── REALTIME ──────────────────────────────────────────────────
+function startRT(){
+  if(!sb){
+    dot('h-sup','err');
+    document.getElementById('conn-bar').classList.add('on');
+    toast('Supabase client failed to initialize','te');
     return;
   }
 
-  // Test connection first
-  sb.from('smoke_logs').select('id').limit(1).then(({error}) => {
-    if (error) {
-      console.error('Supabase connection test failed:', error);
-      setHeaderDot('hdr-supabase-dot','error');
-      document.getElementById('conn-status-bar').classList.add('visible');
-      toast('Supabase connection failed: ' + error.message, 'error', 8000);
-    } else {
-      setHeaderDot('hdr-supabase-dot','online');
-      document.getElementById('conn-status-bar').classList.remove('visible');
-      toast('Connected to Supabase', 'success');
-    }
-  });
-
-  // ✅ KEY FIX: subscribe to ALL inserts (active + completed)
-  sb.channel('smoke-logs-rt')
-    .on('postgres_changes', {event:'INSERT', schema:'public', table:'smoke_logs'}, payload => {
-      console.log('[RT] New log row:', payload.new);
-      handleNewLog(payload.new);
+  // Test connection first, then subscribe
+  sb.from('smoke_logs').select('id').limit(1)
+    .then(({error})=>{
+      if(error){
+        dot('h-sup','err');
+        document.getElementById('conn-bar').classList.add('on');
+        toast('Supabase connection failed: '+error.message,'te',8000);
+        // Retry after 8 seconds
+        setTimeout(startRT, 8000);
+        return;
+      }
+      // Connection good — mark online and subscribe
+      dot('h-sup','online');
+      document.getElementById('conn-bar').classList.remove('on');
+      toast('Connected to Supabase','ts',3000);
+      subscribeRealtime();
     })
-    .subscribe((status) => {
-      console.log('[RT] smoke_logs channel status:', status);
-      if (status === 'SUBSCRIBED') {
-        toast('Realtime connected — listening for sensor data', 'info', 3000);
+    .catch(e=>{
+      dot('h-sup','err');
+      document.getElementById('conn-bar').classList.add('on');
+      setTimeout(startRT, 8000);
+    });
+}
+
+function subscribeRealtime(){
+  // New smoke log rows
+  sb.channel('rt-logs')
+    .on('postgres_changes',{event:'INSERT',schema:'public',table:'smoke_logs'},p=>{
+      if(!S.allLogs.find(r=>r.id===p.new.id)) S.allLogs.unshift(p.new);
+      // Sync override state: if ESP32 sends override=false, clear dashboard override
+      if(!p.new.override && S.ovrCmd){ S.ovrCmd=null; updOvrLabel(); }
+      applyRow(p.new);
+      refreshLogs(); updToday(); rebuildAnalytics(S.allLogs);
+      const lb=document.getElementById('log-bdg');if(lb)lb.textContent=S.allLogs.length;
+    })
+    .subscribe(st=>{
+      if(st==='SUBSCRIBED') toast('Realtime active','ti',2000);
+      if(st==='CHANNEL_ERROR'||st==='CLOSED'){
+        dot('h-sup','warn');
+        // Auto-reconnect after 5s
+        setTimeout(()=>sb.channel('rt-logs').subscribe(),5000);
       }
     });
 
-  sb.channel('sensor-status-rt')
-    .on('postgres_changes', {event:'UPDATE', schema:'public', table:'sensor_status'}, payload => {
-      console.log('[RT] Sensor status update:', payload.new);
-      handleSensorStatus(payload.new);
+  // Sensor heartbeat
+  sb.channel('rt-ss')
+    .on('postgres_changes',{event:'*',schema:'public',table:'sensor_status'},p=>{
+      if(p.new && p.new.last_seen) lastHeartbeatTime=new Date(p.new.last_seen).getTime();
+      appSS(p.new);
+    })
+    .subscribe();
+
+  // Command ACK (ESP32 marks executed=true)
+  sb.channel('rt-cmd')
+    .on('postgres_changes',{event:'UPDATE',schema:'public',table:'commands'},p=>{
+      if(p.new && p.new.executed){
+        const lb={'0':'AIR','1':'NORMAL SMOKE','2':'HAZARDOUS','A':'AUTO','S':'Session Started','X':'Session Stopped'};
+        toast(`ESP32 executed: ${lb[p.new.command]||p.new.command}`,'ts',3000);
+        if(p.new.command==='X' && S.sessRunning) stopSessTimer();
+      }
     })
     .subscribe();
 }
 
-// ── ✅ FIXED: handle both "active" and "completed" rows ───────
-function handleNewLog(row) {
-  // Prepend — avoid duplicates by checking id
-  if (!state.allLogs.find(r => r.id === row.id)) {
-    state.allLogs.unshift(row);
-  }
-
-  // Update dashboard for any incoming row (active or completed)
-  updateDashboard(row);
-
-  if (row.status === 'Hazardous') {
-    toast(`⚠️ HAZARD: ${row.test_id} — Value: ${row.smoke_value}`, 'error', 6000);
-  }
-
-  refreshLogTable();
-  updateTodayCounts();
-  updateDonutChart();
-  rebuildAnalyticsCharts(state.allLogs);
-
-  const lb = document.getElementById('log-badge');
-  if (lb) lb.textContent = state.allLogs.length;
-}
-
-function handleSensorStatus(data) {
-  if (typeof data.warmup_remaining === 'number') {
-    syncWarmupFromESP32(data.warmup_remaining);
-  }
-
-  state.esp32Online = data.is_online;
-  state.esp32Data   = data;
-
-  setHeaderDot('hdr-esp32-dot', data.is_online ? 'online' : 'error');
-
-  const esp32Val = document.getElementById('card-esp32');
-  if (esp32Val) {
-    esp32Val.textContent = data.is_online ? 'ONLINE' : 'OFFLINE';
-    esp32Val.className   = `metric-value ${data.is_online?'text-green':'text-red'}`;
-  }
-  const rssiEl = document.getElementById('card-esp32-rssi');
-  if (rssiEl) rssiEl.textContent = data.rssi ? `RSSI: ${data.rssi} dBm` : 'No signal';
-
-  // Sensor status page
-  const set = (id, val) => { const el=document.getElementById(id); if(el) el.textContent=val; };
-  set('ss-online',  data.is_online ? 'ONLINE' : 'OFFLINE');
-  set('ss-init',    data.is_initialized ? 'YES' : 'NO');
-  set('ss-rssi',    data.rssi ?? '—');
-  set('ss-ip',      data.ip_address ?? '—');
-  set('ss-fw',      data.firmware_ver ?? '—');
-
-  const rem = data.warmup_remaining;
-  set('ss-warmup', rem > 0
-    ? `${String(Math.floor(rem/60)).padStart(2,'0')}:${String(rem%60).padStart(2,'0')}`
-    : data.is_initialized ? 'READY' : '—');
-
-  if (data.last_seen) {
-    const t = new Date(data.last_seen);
-    set('ss-lastseen', `${t.toLocaleDateString()} ${t.toLocaleTimeString()}`);
-  }
-
-  // If ESP32 reports ready, unlock start button
-  if (data.is_initialized && !warmupDone) completeWarmup();
-}
-
-// ── LOAD INITIAL DATA ─────────────────────────────────────────
-async function loadInitialData() {
-  if (!sb) return;
-  try {
-    const { data, error } = await sb
-      .from('smoke_logs')
-      .select('*')
-      .order('created_at', {ascending:false})
-      .limit(500);
-    if (error) throw error;
-    state.allLogs = data || [];
-    refreshLogTable();
-    updateTodayCounts();
-    updateDonutChart();
-    rebuildAnalyticsCharts(state.allLogs);
-    const lb = document.getElementById('log-badge');
-    if (lb) lb.textContent = state.allLogs.length;
-
-    // Load sensor status
-    const { data: sData, error: sErr } = await sb.from('sensor_status').select('*').single();
-    if (!sErr && sData) handleSensorStatus(sData);
-  } catch(e) {
-    console.error('loadInitialData error:', e);
-    toast('Could not load data from Supabase: ' + e.message, 'error');
-  }
-}
-
-// ── TODAY COUNTS ──────────────────────────────────────────────
-function updateTodayCounts() {
-  const today = new Date().toDateString();
-  // Count completed sessions only for summary cards
-  const tl = state.allLogs.filter(r =>
-    new Date(r.created_at).toDateString() === today && r.session_status === 'completed'
-  );
-  state.totalToday  = tl.length;
-  state.safeToday   = tl.filter(r=>r.status==='Safe').length;
-  state.hazardToday = tl.filter(r=>r.status==='Hazardous').length;
-  const set = (id, val) => { const el=document.getElementById(id); if(el) el.textContent=val; };
-  set('card-total-today',  state.totalToday);
-  set('card-safe-today',   state.safeToday);
-  set('card-hazard-today', state.hazardToday);
+// ── INITIAL DATA ──────────────────────────────────────────────
+async function loadData(){
+  if(!sb) return;
+  try{
+    const{data,error}=await sb.from('smoke_logs').select('*').order('created_at',{ascending:false}).limit(500);
+    if(error) throw error;
+    S.allLogs=data||[];
+    if(S.allLogs.length>0){
+      // Restore session state from most recent active row
+      const active=S.allLogs.find(r=>r.session_status==='active');
+      if(active) startSessTimer(active.test_id);
+      // Restore override state from most recent row
+      const latest=S.allLogs[0];
+      if(latest.override && latest.classification){
+        // Map classification back to override command
+        if(latest.classification===CLS_HAZ) S.ovrCmd='2';
+        else if(latest.classification===CLS_NORM) S.ovrCmd='1';
+        else if(latest.classification===CLS_AIR && latest.status===STS_SAFE && latest.override) S.ovrCmd='0';
+        updOvrLabel();
+      }
+      applyRow(latest);
+    }
+    refreshLogs(); updToday(); rebuildAnalytics(S.allLogs);
+    const lb=document.getElementById('log-bdg');if(lb&&S.allLogs.length)lb.textContent=S.allLogs.length;
+  }catch(e){toast('Failed to load logs: '+e.message,'te');}
+  try{
+    const{data,error}=await sb.from('sensor_status').select('*').limit(1).single();
+    if(!error&&data){
+      if(data.last_seen) lastHeartbeatTime = new Date(data.last_seen).getTime();
+      appSS(data);
+    }
+  }catch(_){}
 }
 
 // ── LOG TABLE ─────────────────────────────────────────────────
-function refreshLogTable() { filterLogs(); }
-
-function filterLogs() {
-  const q      = (document.getElementById('log-search')?.value||'').toLowerCase();
-  const status = document.getElementById('log-filter-status')?.value||'';
-  const sess   = document.getElementById('log-filter-session')?.value||'';
-  state.filteredLogs = state.allLogs.filter(r => {
-    const mq = !q ||
-      r.test_id?.toLowerCase().includes(q) ||
-      r.classification?.toLowerCase().includes(q) ||
-      r.status?.toLowerCase().includes(q);
-    return mq && (!status||r.status===status) && (!sess||r.session_status===sess);
+function refreshLogs(){filterLogs();}
+function filterLogs(){
+  const q=(document.getElementById('log-in')?.value||'').toLowerCase();
+  const fs=document.getElementById('lf-sts')?.value||'';
+  const fss=document.getElementById('lf-sess')?.value||'';
+  S.filteredLogs=S.allLogs.filter(r=>{
+    const mq=!q||(r.test_id||'').toLowerCase().includes(q)||(r.classification||'').toLowerCase().includes(q)||(r.status||'').toLowerCase().includes(q);
+    return mq&&(!fs||r.status===fs)&&(!fss||r.session_status===fss);
   });
-  state.page = 1;
-  renderLogTable();
+  S.page=1; renderLogs();
 }
-
-function sortLogs(key) {
-  if (state.sortKey===key) state.sortDir = state.sortDir==='asc'?'desc':'asc';
-  else { state.sortKey=key; state.sortDir='desc'; }
-  renderLogTable();
+function sortL(k){if(S.sortKey===k)S.sortDir=S.sortDir==='asc'?'desc':'asc';else{S.sortKey=k;S.sortDir='desc';}renderLogs();}
+function clsBdg(c){
+  if(c===CLS_HAZ) return `<span class="bdg b-haz">${c}</span>`;
+  if(c===CLS_NORM) return `<span class="bdg b-norm">${c}</span>`;
+  return `<span class="bdg b-air">${c||'AIR'}</span>`;
 }
-
-function renderLogTable() {
-  const sorted = [...state.filteredLogs].sort((a,b)=>{
-    const av=a[state.sortKey], bv=b[state.sortKey];
-    if(state.sortDir==='asc') return av<bv?-1:av>bv?1:0;
-    return av>bv?-1:av<bv?1:0;
+function stsBdg(s){
+  if(s===STS_HAZ) return `<span class="bdg b-hsts">${s}</span>`;
+  if(s===STS_NORM) return `<span class="bdg b-nsts">${s}</span>`;
+  return `<span class="bdg b-safe">${s||'Safe'}</span>`;
+}
+function renderLogs(){
+  const sorted=[...S.filteredLogs].sort((a,b)=>{
+    const av=a[S.sortKey],bv=b[S.sortKey];
+    return S.sortDir==='asc'?(av<bv?-1:av>bv?1:0):(av>bv?-1:av<bv?1:0);
   });
-  const start = (state.page-1)*state.pageSize;
-  const paged = sorted.slice(start, start+state.pageSize);
-  const total = sorted.length;
-  const pages = Math.ceil(total/state.pageSize);
-  const tbody = document.getElementById('logs-tbody');
-  tbody.innerHTML = paged.length === 0
-    ? `<tr><td colspan="9"><div class="empty-state"><div class="empty-state-icon">🔍</div><p>No records match your filter.</p></div></td></tr>`
-    : paged.map(r => {
-        const d=new Date(r.created_at); const isBad=r.status==='Hazardous';
-        return `<tr>
-          <td class="test-id">${r.test_id||'—'}</td>
+  const start=(S.page-1)*S.pageSize,paged=sorted.slice(start,start+S.pageSize),total=sorted.length,pages=Math.ceil(total/S.pageSize)||1;
+  const tb=document.getElementById('ltbody');
+  tb.innerHTML=paged.length===0
+    ?`<tr><td colspan="11"><div class="es"><div class="es-ic">🔍</div><p>No matching records.</p></div></td></tr>`
+    :paged.map(r=>{
+        const d=new Date(r.created_at);
+        const ac=r.status===STS_HAZ?'var(--red)':r.status===STS_NORM?'var(--yellow)':'var(--green)';
+        return`<tr>
+          <td class="tid">${r.test_id||'—'}</td>
           <td>${d.toLocaleDateString()}</td>
-          <td style="font-family:var(--font-mono);font-size:11px">${d.toLocaleTimeString()}</td>
-          <td class="smoke-num" style="color:${isBad?'var(--red)':'var(--green)'}">${r.smoke_value}</td>
-          <td><span class="badge ${r.classification==='Bad Smoke'?'badge-bad':'badge-good'}">${r.classification}</span></td>
-          <td><span class="badge ${isBad?'badge-hazard':'badge-safe'}">${r.status}</span></td>
-          <td>
-            <span class="led-dot ${r.green_led?'g':'off'}"></span>
-            <span class="led-dot ${r.red_led?'r':'off'}" style="margin-left:4px"></span>
-          </td>
-          <td><span class="led-dot ${r.buzzer?'r':'off'}"></span></td>
-          <td><span class="badge ${r.session_status==='active'?'badge-active':'badge-completed'}">${r.session_status}</span></td>
+          <td style="font-family:var(--fm);font-size:11px">${d.toLocaleTimeString()}</td>
+          <td class="ao" style="color:${ac}">${r.smoke_value}</td>
+          <td>${clsBdg(r.classification)}</td>
+          <td>${stsBdg(r.status)}</td>
+          <td><span class="ldot ${r.green_led?'g':'off'}"></span></td>
+          <td><span class="ldot ${r.red_led?'r':'off'}"></span></td>
+          <td><span class="ldot ${r.buzzer?'r':'off'}"></span></td>
+          <td style="font-size:11px;color:${r.override?'var(--yellow)':'var(--tm)'}">${r.override?'YES':'—'}</td>
+          <td><span class="bdg ${r.session_status==='active'?'b-act':'b-cmp'}">${r.session_status}</span></td>
         </tr>`;
       }).join('');
-
-  document.getElementById('log-pagination-info').textContent =
-    `${total} records — page ${state.page} of ${Math.max(1,pages)}`;
-
-  const btns = document.getElementById('log-pagination-btns');
-  btns.innerHTML = '';
-  if (pages > 1) {
-    const prev = document.createElement('button');
-    prev.className='page-btn'; prev.textContent='‹'; prev.disabled=state.page===1;
-    prev.onclick=()=>{if(state.page>1){state.page--;renderLogTable();}};
-    btns.appendChild(prev);
-  }
-  for (let i=1; i<=pages; i++) {
-    if (pages>7 && i>2 && i<pages-1 && Math.abs(i-state.page)>1) {
-      if (i===3||i===pages-2) btns.innerHTML+=`<span style="color:var(--text-muted);padding:0 4px">…</span>`;
-      continue;
-    }
-    const btn=document.createElement('button');
-    btn.className=`page-btn ${i===state.page?'active':''}`;
-    btn.textContent=i;
-    btn.onclick=()=>{state.page=i;renderLogTable();};
-    btns.appendChild(btn);
-  }
-  if (pages > 1) {
-    const next=document.createElement('button');
-    next.className='page-btn'; next.textContent='›'; next.disabled=state.page===pages;
-    next.onclick=()=>{if(state.page<pages){state.page++;renderLogTable();}};
-    btns.appendChild(next);
-  }
+  document.getElementById('lpg-info').textContent=`${total} records — page ${S.page} of ${pages}`;
+  buildPg(pages);
 }
-
-function globalSearch(val) {
-  const ls = document.getElementById('log-search');
-  if (ls) ls.value = val;
-  filterLogs();
-  if (val && state.allLogs.some(r=>r.test_id?.toLowerCase().includes(val.toLowerCase())))
-    showSection('logs', document.querySelector('[data-section=logs]'));
+function buildPg(pages){
+  const c=document.getElementById('lpg-btns');c.innerHTML='';
+  if(pages<=1) return;
+  const mk=(lbl,pg,active)=>{const b=document.createElement('button');b.className='pgb'+(active?' active':'');b.textContent=lbl;b.disabled=(pg<1||pg>pages);b.onclick=()=>{S.page=pg;renderLogs();};c.appendChild(b);};
+  mk('‹',S.page-1,false);
+  for(let i=1;i<=pages;i++){if(pages>7&&i>2&&i<pages-1&&Math.abs(i-S.page)>1){if(i===3||i===pages-2)c.innerHTML+='<span style="color:var(--tm);padding:0 4px">…</span>';continue;}mk(i,i,i===S.page);}
+  mk('›',S.page+1,false);
 }
+function gSearch(v){const e=document.getElementById('log-in');if(e)e.value=v;filterLogs();if(v&&S.allLogs.some(r=>(r.test_id||'').toLowerCase().includes(v.toLowerCase())))nav('logs',document.querySelector('[data-sec=logs]'));}
 
 // ── QUEUE ─────────────────────────────────────────────────────
-function addToQueue() {
-  const input=document.getElementById('queue-input'), val=input.value.trim();
-  if (!val) return;
-  state.queue.push({name:val,status:'waiting'});
-  input.value='';
-  renderQueue();
-  toast(`"${val}" added to queue`,'info',2000);
-}
-function clearQueue() { state.queue=[]; renderQueue(); }
-function renderQueue() {
-  const el=document.getElementById('queue-list');
-  if (!state.queue.length) {
-    el.innerHTML=`<div class="empty-state"><div class="empty-state-icon">🚫</div><p>No vehicles in queue.</p></div>`;
-    return;
-  }
-  el.innerHTML=state.queue.map((v,i)=>`
-    <div class="queue-item ${v.status==='testing'?'current':''}">
-      <div class="queue-num">#${String(i+1).padStart(2,'0')}</div>
-      <div class="queue-icon">${v.status==='done'?'✅':v.status==='testing'?'🔬':'🚗'}</div>
-      <div class="queue-name">${v.name}</div>
-      <span class="queue-status-badge ${v.status==='testing'?'qs-testing':v.status==='done'?'qs-done':'qs-waiting'}">
-        ${v.status==='testing'?'Testing...':v.status==='done'?'Done':'Waiting'}
-      </span>
-    </div>`).join('');
+function addQ(){const e=document.getElementById('qin'),v=e.value.trim();if(!v)return;S.queue.push({name:v,status:'waiting'});e.value='';renderQ();toast(`"${v}" added`,'ti',2000);}
+function clrQ(){S.queue=[];renderQ();}
+function renderQ(){
+  const e=document.getElementById('qlist');
+  if(!S.queue.length){e.innerHTML=`<div class="es"><div class="es-ic">🚫</div><p>Queue is empty.</p></div>`;return;}
+  e.innerHTML=S.queue.map((v,i)=>`<div class="qi ${v.status==='testing'?'cur':''}"><div class="qi-n">#${pad(i+1)}</div><div class="qi-ic">${v.status==='done'?'✅':v.status==='testing'?'🔬':'🚗'}</div><div class="qi-name">${v.name}</div><span class="qs-bdg ${v.status==='testing'?'qs-t':v.status==='done'?'qs-d':'qs-w'}">${v.status==='testing'?'Testing…':v.status==='done'?'Done':'Waiting'}</span></div>`).join('');
 }
 
 // ── EXPORT ────────────────────────────────────────────────────
-function exportCSV() {
-  const rows = getFilteredExportData();
-  const headers = ['Test ID','Date','Time','Smoke Value','Classification','Status','Green LED','Red LED','Buzzer','Session'];
-  const csv = [headers.join(','), ...rows.map(r=>{
+function getExpData(){
+  const p=document.getElementById('rpt-p')?.value||'today',now=new Date();
+  return S.allLogs.filter(r=>{
     const d=new Date(r.created_at);
-    return [r.test_id,d.toLocaleDateString(),d.toLocaleTimeString(),r.smoke_value,
-      r.classification,r.status,r.green_led,r.red_led,r.buzzer,r.session_status]
-      .map(v=>`"${v}"`).join(',');
-  })].join('\n');
-  const a=document.createElement('a');
-  a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
-  a.download=`TROYIKZ_report_${Date.now()}.csv`;
-  a.click();
-  toast('CSV exported!','success');
-}
-
-function generatePDF() {
-  if (typeof window.jspdf==='undefined') { toast('jsPDF not loaded','error'); return; }
-  const {jsPDF}=window.jspdf, doc=new jsPDF();
-  doc.setFillColor(5,13,26); doc.rect(0,0,210,35,'F');
-  doc.setTextColor(0,200,255); doc.setFont('helvetica','bold');
-  doc.setFontSize(20); doc.text('TROYIKZ',14,16);
-  doc.setFontSize(9); doc.setTextColor(122,184,212);
-  doc.text('Smart Smoke Detection & Hazard Classification System',14,23);
-  doc.setFontSize(8); doc.text(`Generated: ${new Date().toLocaleString()}`,14,30);
-  doc.setTextColor(40,40,40); doc.setFontSize(11); doc.setFont('helvetica','bold');
-  doc.text('Summary Statistics',14,48);
-  doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(80);
-  doc.text(`Total Tests: ${state.allLogs.length}`,14,56);
-  doc.text(`Safe: ${state.allLogs.filter(r=>r.status==='Safe').length}`,60,56);
-  doc.text(`Hazardous: ${state.allLogs.filter(r=>r.status==='Hazardous').length}`,100,56);
-  const rows=getFilteredExportData().slice(0,200);
-  doc.autoTable({startY:64,
-    head:[['Test ID','Date','Time','Smoke','Classification','Status','G-LED','R-LED','Buzzer','Session']],
-    body:rows.map(r=>{
-      const d=new Date(r.created_at);
-      return[r.test_id,d.toLocaleDateString(),d.toLocaleTimeString(),r.smoke_value,
-        r.classification,r.status,r.green_led?'ON':'OFF',r.red_led?'ON':'OFF',r.buzzer?'ON':'OFF',r.session_status];
-    }),
-    styles:{fontSize:7,cellPadding:2},
-    headStyles:{fillColor:[5,13,26],textColor:[0,200,255]},
-    alternateRowStyles:{fillColor:[245,248,255]}
-  });
-  doc.save(`TROYIKZ_report_${Date.now()}.pdf`);
-  toast('PDF report downloaded!','success');
-}
-
-function getFilteredExportData() {
-  const period=document.getElementById('report-period')?.value||'today', now=new Date();
-  return state.allLogs.filter(r=>{
-    const d=new Date(r.created_at);
-    if(period==='today')  return d.toDateString()===now.toDateString();
-    if(period==='week')   { const w=new Date(now); w.setDate(now.getDate()-7); return d>=w; }
-    if(period==='month')  { const m=new Date(now); m.setMonth(now.getMonth()-1); return d>=m; }
-    if(period==='custom') {
-      const from=document.getElementById('report-from')?.value;
-      const to=document.getElementById('report-to')?.value;
-      if(from) return d>=new Date(from)&&(!to||d<=new Date(to+'T23:59:59'));
-    }
+    if(p==='today') return d.toDateString()===now.toDateString();
+    if(p==='week'){const w=new Date(now);w.setDate(now.getDate()-7);return d>=w;}
+    if(p==='month'){const m=new Date(now);m.setMonth(now.getMonth()-1);return d>=m;}
+    if(p==='custom'){const f=document.getElementById('rpt-from')?.value,t2=document.getElementById('rpt-to')?.value;return d>=new Date(f)&&(!t2||d<=new Date(t2+'T23:59:59'));}
     return true;
   });
 }
-
-function onReportPeriodChange() {
-  document.getElementById('report-date-range').style.display =
-    document.getElementById('report-period').value==='custom' ? 'flex' : 'none';
+function exportCSV(){
+  const rows=getExpData();
+  const hdr=['test_id','date','time','smoke_value','classification','status','green_led','red_led','buzzer','override','session_status'];
+  const csv=[hdr.join(','),...rows.map(r=>{const d=new Date(r.created_at);return[r.test_id,d.toLocaleDateString(),d.toLocaleTimeString(),r.smoke_value,r.classification,r.status,r.green_led,r.red_led,r.buzzer,r.override||false,r.session_status].map(v=>`"${v}"`).join(',');})].join('\n');
+  const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);a.download=`TROYIKZ_${Date.now()}.csv`;a.click();toast('CSV exported!','ts');
 }
+function genPDF(){
+  if(typeof window.jspdf==='undefined'){toast('jsPDF not loaded','te');return;}
+  const{jsPDF}=window.jspdf,doc=new jsPDF();
+  doc.setFillColor(5,13,26);doc.rect(0,0,210,36,'F');
+  doc.setTextColor(0,200,255);doc.setFont('helvetica','bold');doc.setFontSize(20);doc.text('TROYIKZ',14,16);
+  doc.setFontSize(9);doc.setTextColor(122,184,212);doc.text('Smart Smoke Detection & Hazard Classification',14,23);
+  doc.text(`Generated: ${new Date().toLocaleString()}  |  NORMAL>=${NT}  HAZARDOUS>=${HT}`,14,30);
+  const rows=getExpData();
+  const safe=rows.filter(r=>r.status===STS_SAFE).length,norm=rows.filter(r=>r.status===STS_NORM).length,haz=rows.filter(r=>r.status===STS_HAZ).length;
+  doc.setTextColor(40);doc.setFontSize(11);doc.text('Summary',14,48);
+  doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(80);
+  doc.text(`Total: ${rows.length}`,14,56);doc.text(`AIR/Safe: ${safe}`,55,56);doc.text(`Normal: ${norm}`,95,56);doc.text(`Hazardous: ${haz}`,150,56);
+  doc.autoTable({startY:64,head:[['Test ID','Date','Time','AO','Classification','Status','G-LED','R-LED','Buzzer','OVR','Session']],
+    body:rows.slice(0,200).map(r=>{const d=new Date(r.created_at);return[r.test_id,d.toLocaleDateString(),d.toLocaleTimeString(),r.smoke_value,r.classification,r.status,r.green_led?'ON':'OFF',r.red_led?'ON':'OFF',r.buzzer?'ON':'OFF',r.override?'YES':'NO',r.session_status];}),
+    styles:{fontSize:7,cellPadding:2},headStyles:{fillColor:[5,13,26],textColor:[0,200,255]},alternateRowStyles:{fillColor:[245,248,255]}});
+  doc.save(`TROYIKZ_${Date.now()}.pdf`);
+  toast('PDF downloaded!','ts');
+}
+function rptPChg(){const d=document.getElementById('rpt-d');if(d)d.style.display=document.getElementById('rpt-p').value==='custom'?'flex':'none';}
 
 // ── THEME ─────────────────────────────────────────────────────
-function applyTheme(name, el) {
-  document.body.dataset.theme = name;
-  localStorage.setItem('troyikz_theme', name);
-  document.querySelectorAll('.theme-option').forEach(o=>o.classList.remove('selected'));
-  if (el) el.classList.add('selected');
-  closeThemeModal();
-  toast(`Theme: ${name}`,'info',2000);
-}
-function toggleTheme() {
-  applyTheme(document.body.dataset.theme==='light'?'dark':'light', null);
-}
-function openThemeModal()  { document.getElementById('theme-modal').classList.add('open'); }
-function closeThemeModal() { document.getElementById('theme-modal').classList.remove('open'); }
+function applyTheme(n,el){document.body.dataset.theme=n;localStorage.setItem('tz_theme',n);document.querySelectorAll('.to').forEach(o=>o.classList.remove('sel'));if(el)el.classList.add('sel');closeTheme();toast(`Theme: ${n}`,'ti',2000);}
+function toggleTheme(){applyTheme(document.body.dataset.theme==='light'?'dark':'light',null);}
+function openTheme(){document.getElementById('tmodal').classList.add('open');}
+function closeTheme(){document.getElementById('tmodal').classList.remove('open');}
 
 // ── INIT ──────────────────────────────────────────────────────
-document.body.dataset.theme = localStorage.getItem('troyikz_theme') || 'dark';
-window.onclick = e => { if (e.target===document.getElementById('theme-modal')) closeThemeModal(); };
-
-startWarmupBanner();
+document.body.dataset.theme=localStorage.getItem('tz_theme')||'dark';
+window.onclick=e=>{if(e.target===document.getElementById('tmodal'))closeTheme();};
+const st=localStorage.getItem('tz_theme')||'dark';
+document.querySelectorAll('.to').forEach(o=>{if((o.getAttribute('onclick')||'').includes(`'${st}'`))o.classList.add('sel');else o.classList.remove('sel');});
+document.getElementById('wb').classList.add('on');
+sbSt('warn','Connecting…');
 initCharts();
-startRealtimeSubscription();
-loadInitialData();
-updateSidebarStatus('warning', 'Sensor Warming Up');
+startRT();
+loadData();
 </script>
 </body>
 </html>

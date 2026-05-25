@@ -1,98 +1,134 @@
 -- ============================================================
--- TROYIKZ Smart Smoke Detection System
--- Supabase Database Setup Script
--- ============================================================
--- If you get column errors, the table already exists from a
--- previous failed run. This script drops and recreates cleanly.
+--  TROYIKZ — Supabase Schema v1.2.0
+--  Run entire script in Supabase SQL Editor
+--  CHANGES v1.2.0:
+--    + commands constraint updated: adds 'S' (Start) and 'X' (Stop)
 -- ============================================================
 
--- Drop existing tables (safe — removes old broken versions)
-DROP TABLE IF EXISTS public.smoke_logs CASCADE;
-DROP TABLE IF EXISTS public.sensor_status CASCADE;
-DROP VIEW  IF EXISTS public.today_summary CASCADE;
+-- ── 1. smoke_logs ──────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS public.smoke_logs (
+    id              bigserial    PRIMARY KEY,
+    test_id         text         NOT NULL,
+    smoke_value     integer      NOT NULL CHECK (smoke_value >= 0 AND smoke_value <= 1023),
+    classification  text         NOT NULL CHECK (classification IN ('AIR','NORMAL SMOKE','HAZARDOUS SMOKE')),
+    status          text         NOT NULL CHECK (status IN ('Safe','Normal','Hazardous')),
+    green_led       boolean      NOT NULL DEFAULT false,
+    red_led         boolean      NOT NULL DEFAULT false,
+    buzzer          boolean      NOT NULL DEFAULT false,
+    override        boolean      NOT NULL DEFAULT false,
+    session_status  text         NOT NULL DEFAULT 'active'
+                                 CHECK (session_status IN ('active','completed')),
+    created_at      timestamptz  NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_smoke_logs_created ON public.smoke_logs (created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_smoke_logs_test    ON public.smoke_logs (test_id);
+CREATE INDEX IF NOT EXISTS idx_smoke_logs_status  ON public.smoke_logs (status);
 
--- ============================================================
--- 1. SMOKE LOGS TABLE
--- ============================================================
-CREATE TABLE public.smoke_logs (
-  id               UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
-  test_id          TEXT        NOT NULL,
-  smoke_value      INTEGER     NOT NULL,
-  classification   TEXT        NOT NULL,
-  status           TEXT        NOT NULL,
-  green_led        BOOLEAN     NOT NULL DEFAULT FALSE,
-  red_led          BOOLEAN     NOT NULL DEFAULT FALSE,
-  buzzer           BOOLEAN     NOT NULL DEFAULT FALSE,
-  session_status   TEXT        NOT NULL DEFAULT 'active',
-  created_at       TIMESTAMPTZ NOT NULL DEFAULT NOW()
+-- ── 2. sensor_status ───────────────────────────────────────
+CREATE TABLE IF NOT EXISTS public.sensor_status (
+    id               bigserial   PRIMARY KEY,
+    device_id        text        NOT NULL UNIQUE,
+    is_online        boolean     NOT NULL DEFAULT false,
+    is_initialized   boolean     NOT NULL DEFAULT false,
+    warmup_remaining integer     NOT NULL DEFAULT 180 CHECK (warmup_remaining >= 0),
+    rssi             integer,
+    ip_address       text,
+    firmware_ver     text,
+    last_seen        timestamptz NOT NULL DEFAULT now()
+);
+ALTER TABLE public.sensor_status
+    DROP CONSTRAINT IF EXISTS sensor_status_device_id_key;
+ALTER TABLE public.sensor_status
+    ADD CONSTRAINT sensor_status_device_id_key UNIQUE (device_id);
+
+-- ── 3. commands ────────────────────────────────────────────
+--  '0'=Force AIR  '1'=Force NORMAL  '2'=Force HAZARDOUS
+--  'A'=Auto       'S'=Start Session  'X'=Stop Session
+CREATE TABLE IF NOT EXISTS public.commands (
+    id          bigserial   PRIMARY KEY,
+    command     varchar(2)  NOT NULL,
+    executed    boolean     NOT NULL DEFAULT false,
+    created_at  timestamptz NOT NULL DEFAULT now()
 );
 
-CREATE INDEX idx_smoke_logs_created_at     ON public.smoke_logs (created_at DESC);
-CREATE INDEX idx_smoke_logs_status         ON public.smoke_logs (status);
-CREATE INDEX idx_smoke_logs_session_status ON public.smoke_logs (session_status);
-CREATE INDEX idx_smoke_logs_test_id        ON public.smoke_logs (test_id);
+-- Drop old constraint and add updated one with S and X
+ALTER TABLE public.commands
+    DROP CONSTRAINT IF EXISTS commands_command_check;
+ALTER TABLE public.commands
+    ADD CONSTRAINT commands_command_check
+    CHECK (command IN ('0','1','2','A','S','X'));
 
--- ============================================================
--- 2. SENSOR STATUS TABLE
--- ============================================================
-CREATE TABLE public.sensor_status (
-  id             UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
-  device_id      TEXT        NOT NULL UNIQUE DEFAULT 'esp32-troyikz-01',
-  is_online      BOOLEAN     NOT NULL DEFAULT FALSE,
-  is_initialized BOOLEAN     NOT NULL DEFAULT FALSE,
-  rssi           INTEGER,
-  ip_address     TEXT,
-  firmware_ver   TEXT        DEFAULT 'v1.0.0',
-  last_seen      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  created_at     TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
+CREATE INDEX IF NOT EXISTS idx_commands_pending ON public.commands (executed, created_at ASC);
 
-INSERT INTO public.sensor_status (device_id, is_online, is_initialized)
-VALUES ('esp32-troyikz-01', FALSE, FALSE)
-ON CONFLICT (device_id) DO NOTHING;
+-- ── Realtime ───────────────────────────────────────────────
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_publication_tables
+    WHERE pubname = 'supabase_realtime' AND tablename = 'smoke_logs'
+  ) THEN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.smoke_logs;
+  END IF;
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_publication_tables
+    WHERE pubname = 'supabase_realtime' AND tablename = 'sensor_status'
+  ) THEN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.sensor_status;
+  END IF;
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_publication_tables
+    WHERE pubname = 'supabase_realtime' AND tablename = 'commands'
+  ) THEN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.commands;
+  END IF;
+END $$;
 
--- ============================================================
--- 3. ROW LEVEL SECURITY
--- ============================================================
+-- ── RLS ────────────────────────────────────────────────────
 ALTER TABLE public.smoke_logs    ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.sensor_status ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.commands      ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "anon_select_smoke_logs"
-  ON public.smoke_logs FOR SELECT TO anon USING (true);
+DROP POLICY IF EXISTS "anon_ins_logs" ON public.smoke_logs;
+DROP POLICY IF EXISTS "anon_sel_logs" ON public.smoke_logs;
+CREATE POLICY "anon_ins_logs" ON public.smoke_logs FOR INSERT TO anon WITH CHECK (true);
+CREATE POLICY "anon_sel_logs" ON public.smoke_logs FOR SELECT TO anon USING (true);
 
-CREATE POLICY "anon_insert_smoke_logs"
-  ON public.smoke_logs FOR INSERT TO anon WITH CHECK (true);
+DROP POLICY IF EXISTS "anon_ins_ss" ON public.sensor_status;
+DROP POLICY IF EXISTS "anon_upd_ss" ON public.sensor_status;
+DROP POLICY IF EXISTS "anon_sel_ss" ON public.sensor_status;
+CREATE POLICY "anon_ins_ss" ON public.sensor_status FOR INSERT TO anon WITH CHECK (true);
+CREATE POLICY "anon_upd_ss" ON public.sensor_status FOR UPDATE TO anon USING (true) WITH CHECK (true);
+CREATE POLICY "anon_sel_ss" ON public.sensor_status FOR SELECT TO anon USING (true);
 
-CREATE POLICY "anon_update_smoke_logs"
-  ON public.smoke_logs FOR UPDATE TO anon USING (true) WITH CHECK (true);
+DROP POLICY IF EXISTS "anon_all_cmd" ON public.commands;
+CREATE POLICY "anon_all_cmd" ON public.commands FOR ALL TO anon USING (true) WITH CHECK (true);
 
-CREATE POLICY "anon_select_sensor_status"
-  ON public.sensor_status FOR SELECT TO anon USING (true);
+-- ── Helper views ───────────────────────────────────────────
+DROP VIEW IF EXISTS public.v_today_summary;
+DROP VIEW IF EXISTS public.v_session_summary;
 
-CREATE POLICY "anon_insert_sensor_status"
-  ON public.sensor_status FOR INSERT TO anon WITH CHECK (true);
-
-CREATE POLICY "anon_update_sensor_status"
-  ON public.sensor_status FOR UPDATE TO anon USING (true) WITH CHECK (true);
-
--- ============================================================
--- 4. TODAY SUMMARY VIEW
--- ============================================================
-CREATE VIEW public.today_summary AS
+CREATE VIEW public.v_today_summary AS
 SELECT
-  COUNT(*)                                          AS total,
-  COUNT(*) FILTER (WHERE status = 'Safe')          AS safe_count,
-  COUNT(*) FILTER (WHERE status = 'Hazardous')     AS hazard_count,
-  ROUND(
-    COUNT(*) FILTER (WHERE status = 'Safe')::NUMERIC
-    / NULLIF(COUNT(*), 0) * 100, 1
-  )                                                AS safe_pct
+    COUNT(*)                                              AS total_today,
+    COUNT(*) FILTER (WHERE status='Safe')                 AS safe_today,
+    COUNT(*) FILTER (WHERE status='Normal')               AS normal_today,
+    COUNT(*) FILTER (WHERE status='Hazardous')            AS hazard_today,
+    COUNT(DISTINCT test_id)                               AS sessions_today
 FROM public.smoke_logs
-WHERE session_status = 'completed'
-  AND created_at >= CURRENT_DATE;
+WHERE created_at >= CURRENT_DATE AT TIME ZONE 'Asia/Manila';
 
--- ============================================================
--- DONE. Verify with:
---   SELECT column_name FROM information_schema.columns
---   WHERE table_name = 'smoke_logs';
--- ============================================================
+CREATE VIEW public.v_session_summary AS
+SELECT
+    test_id,
+    COUNT(*)                                              AS total_readings,
+    MAX(smoke_value)                                      AS peak_ao,
+    ROUND(AVG(smoke_value)::numeric, 1)                  AS avg_ao,
+    COUNT(*) FILTER (WHERE status='Safe')                 AS safe_count,
+    COUNT(*) FILTER (WHERE status='Normal')               AS normal_count,
+    COUNT(*) FILTER (WHERE status='Hazardous')            AS hazard_count,
+    bool_or(session_status='completed')                   AS is_completed,
+    MIN(created_at)                                       AS started_at,
+    MAX(created_at)                                       AS ended_at
+FROM public.smoke_logs
+GROUP BY test_id
+ORDER BY MAX(created_at) DESC;
